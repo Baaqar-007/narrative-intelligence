@@ -6,6 +6,7 @@ evolves in narrative-bin intensity across a book.
 from dataclasses import dataclass
 
 import networkx as nx
+from collections import Counter
 
 from graph.relation_ontology import is_canonical_relation
 from temporal.binning import assign_narrative_bin, compute_num_bins
@@ -70,3 +71,26 @@ def relationship_trajectory(
         bin_counts[bin_num] += 1
 
     return bin_counts
+
+def most_active_pairs_in_bin(
+    graph: nx.MultiDiGraph,
+    bin_num: int,
+    index: BookTemporalIndex,
+    top_n: int = 5,
+    canonical_only: bool = True,
+) -> list[tuple[tuple[str, str], int]]:
+        count = Counter()
+        for u,v,data in graph.edges(data = True):
+            if canonical_only and not is_canonical_relation(data["relation"]):
+                        continue
+            bin_n = assign_narrative_bin(
+                        chunk_id=data["chunk_id"],
+                        min_chunk_id=index.min_chunk_id,
+                        max_chunk_id=index.max_chunk_id,
+                        num_bins=index.num_bins,
+                    )
+            if bin_num != bin_n:
+                continue 
+            count[tuple(sorted((u,v)))] += 1
+        return count.most_common(top_n)
+            
