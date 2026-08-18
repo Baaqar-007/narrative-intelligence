@@ -11,9 +11,9 @@ question answering.
 
 ## Status
 
-**Week 1 (Knowledge Graph) — complete.**
-**Week 2 (Temporal Layer) — complete.**
-Weeks 3–4 (Hybrid Retrieval, Deployment) — not started.
+- **Week 1 (Knowledge Graph) — complete.**
+- **Week 2 (Temporal Layer) — complete.**
+- Weeks 3–4 (Hybrid Retrieval, Deployment) — not started.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ Stack: Python, Pandas, NetworkX, NumPy, Sentence Transformers, ChromaDB,
 FastAPI, Docker. No relation extraction, no model training/fine-tuning
 anywhere in the pipeline.
 
-## What's built so far (Week 1)
+## What's built so far
 
 | Module | Purpose |
 |---|---|
