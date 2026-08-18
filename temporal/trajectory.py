@@ -93,4 +93,47 @@ def most_active_pairs_in_bin(
                 continue 
             count[tuple(sorted((u,v)))] += 1
         return count.most_common(top_n)
-            
+
+def book_trajectory(
+    graph: nx.MultiDiGraph,
+    index: BookTemporalIndex,
+    canonical_only: bool = True,
+) -> dict[int, int]:
+    """Count all canonical relation instances per narrative bin, across
+    the whole book (not restricted to one entity pair).
+
+    Args:
+        graph: The book's relation graph.
+        index: Precomputed temporal index for this book.
+        canonical_only: If True, only count ontology-canonical relation
+            types.
+
+    Returns:
+        A dense dict mapping bin number -> count, all bins 1..num_bins
+        present.
+    """
+    bin_counts = {b: 0 for b in range(1, index.num_bins + 1)}
+
+    for _, _, data in graph.edges(data=True):
+        if canonical_only and not is_canonical_relation(data["relation"]):
+            continue
+        bin_num = assign_narrative_bin(
+            chunk_id=data["chunk_id"],
+            min_chunk_id=index.min_chunk_id,
+            max_chunk_id=index.max_chunk_id,
+            num_bins=index.num_bins,
+        )
+        bin_counts[bin_num] += 1
+
+    return bin_counts
+
+def weighted_mean_bin(trajectory: dict[int, int]) -> float | None:
+    """Count-weighted mean bin position — summarizes whether activity
+    skews early (low), late (high), or is centered/even.
+
+    Returns None if the trajectory has zero total count (nothing to average).
+    """
+    total = sum(trajectory.values())
+    if total == 0:
+        return None
+    return sum(b * c for b, c in trajectory.items()) / total

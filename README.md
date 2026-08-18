@@ -12,7 +12,8 @@ question answering.
 ## Status
 
 **Week 1 (Knowledge Graph) — complete.**
-Weeks 2–4 (Temporal Layer, Hybrid Retrieval, Deployment) — not started.
+**Week 2 (Temporal Layer) — complete.**
+Weeks 3–4 (Hybrid Retrieval, Deployment) — not started.
 
 ## Architecture
 
@@ -33,6 +34,8 @@ anywhere in the pipeline.
 | `graph/corpus.py` | `build_corpus_graphs()`, `save_corpus()`, `load_corpus()` — builds and persists the full 96-book corpus |
 | `data/arf_chunks_parsed.parquet` | Cleaned dataset (malformed rows removed) |
 | `data/graphs/corpus.pkl` | Persisted graph corpus (96 books) |
+| `temporal/binning.py` | `compute_num_bins()`, `assign_narrative_bin()` — narrative-position binning, adapted from Christou & Tsoumakas (2025), "Relational Arcs as Narrative Structure" |
+| `temporal/trajectory.py` | `build_temporal_index()`, `relationship_trajectory()`, `most_active_pairs_in_bin()`, `book_trajectory()`, `weighted_mean_bin()` — query-time temporal queries over a book's graph |
 
 ### Corpus stats
 - 96 books, 44,248 nodes, 128,331 edges
@@ -52,6 +55,35 @@ anywhere in the pipeline.
   lossy custom encoding; confirmed empirically. Trade-off: pickle is
   Python-only and unsafe to load from untrusted sources, which is fine
   since we only load files we generate ourselves.
+- **Temporal = narrative position, not real time.** ARF has no calendar
+  dates; `chunk_id` (per-book, mostly contiguous — see Week 1 findings)
+  is the only ordering signal. "Temporal layer" here means percent-of-book
+  position, following the binning method from Christou & Tsoumakas (2025).
+- **Deviation from the published binning formula:** uses
+  `(chunk_id - min_chunk_id)` instead of raw `chunk_id`, since ARF's
+  per-book chunk sampling means `chunk_id` doesn't always start at 0.
+  Verified empirically this matters: a chunk 5 positions into an
+  883-chunk span landed in bin 1 with the offset vs. bin 3 without it.
+- **Query-time, not precomputed.** Trajectories and bin queries are
+  computed on demand from the graph, not stored/cached. Revisit if
+  retrieval latency becomes a measured problem (deferred to v2/deployment).
+- **Relation filtering:** all temporal queries default to
+  `canonical_only=True` (see `graph/relation_ontology.py`), excluding
+  the ~2.5% of relation instances that deviate from ARF's 48-type
+  ontology (free-text phrases like "screaming at", not typos —
+  see Week 1 findings). Revisit only if this measurably affects output.
+### Corpus-wide temporal finding
+
+Computed a count-weighted mean narrative position (normalized 0–1)
+for all canonical relations in each book, across 95/96 books (74763
+excluded — zero relations). Result: activity is roughly evenly
+distributed across the narrative for most books (mean = 0.531,
+89/95 books within the 0.4–0.6 band), **not** front- or back-loaded.
+Book 106 ("Jungle Tales of Tarzan"), used throughout early development,
+is *not* representative — it shows unusually clustered early/late
+activity with a sparse middle. This suggests narrative-position-based
+retrieval queries should be meaningful across most of the corpus, not
+just the one book used for development.
 
 ## Known limitations (open, tracked deliberately)
 
@@ -73,6 +105,12 @@ anywhere in the pipeline.
 5. **1 malformed row** in the raw ARF dataset (a parsing artifact,
    not our bug) — filtered out during cleaning.
 
+6. **No distinction between "no relationship" and "unrecognized entity name."**          `relationship_trajectory()` returns an all-zero dense
+   trajectory for both a real entity pair with no shared relations and
+   a misspelled/nonexistent entity name — verified by test, not a bug,
+   but worth guarding against once retrieval accepts free-text entity
+   references from user queries (Week 3+).
+
 ## Setup
 
 ```bash
@@ -92,6 +130,6 @@ accuracy, and latency. Scoped for Week 3–4.
 ## Roadmap
 
 - [x] Week 1 — Knowledge Graph
-- [ ] Week 2 — Temporal Layer
+- [x] Week 2 — Temporal Layer
 - [ ] Week 3 — Hybrid Retrieval
 - [ ] Week 4 — Deployment
