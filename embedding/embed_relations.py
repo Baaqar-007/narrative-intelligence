@@ -10,6 +10,7 @@ only to the embedding pipeline's input.
 """
 
 from dataclasses import dataclass
+from graph.canonicalization import normalize_entity_name
 
 import pandas as pd
 from sentence_transformers import SentenceTransformer
@@ -79,6 +80,12 @@ def build_embedding_records(df: pd.DataFrame) -> list[EmbeddingRecord]:
             id_occurrences[base_id] = count + 1
             record_id = f"{base_id}_{count}" if count else base_id
 
+            canonical_entity1 = normalize_entity_name(r["entity1"])
+            canonical_entity2 = normalize_entity_name(r["entity2"])
+
+            # keep the raw names for display text (relation_to_sentence should
+            # still use raw names, since "Taug is a protector of Teeka" reads
+            # better than "taug is a protector of teeka")
             text = relation_to_sentence(r["entity1"], r["entity2"], r["relation"])
 
             records.append(EmbeddingRecord(
@@ -86,8 +93,8 @@ def build_embedding_records(df: pd.DataFrame) -> list[EmbeddingRecord]:
                 text=text,
                 book_id=row["book_id"],
                 chunk_id=int(row["chunk_id"]),
-                entity1=r["entity1"],
-                entity2=r["entity2"],
+                entity1=canonical_entity1,   # canonicalized, matches graph node keys
+                entity2=canonical_entity2,   # canonicalized, matches graph node keys
                 relation=r["relation"],
             ))
 

@@ -137,3 +137,32 @@ def weighted_mean_bin(trajectory: dict[int, int]) -> float | None:
     if total == 0:
         return None
     return sum(b * c for b, c in trajectory.items()) / total
+
+def get_relationships_between(graph: nx.MultiDiGraph, entity_a: str, entity_b: str) -> list[dict]:
+    """Get every edge between two entities, in their true stored direction.
+
+    Unlike relationship_trajectory() (which counts instances per bin),
+    this returns the actual relation data - useful when a vector search
+    hit identifies two entities as relevant, and we want the precise,
+    graph-verified facts about them (not just a semantic approximation).
+
+    Args:
+        graph: The book's relation graph.
+        entity_a: One entity's normalized name.
+        entity_b: The other entity's normalized name.
+
+    Returns:
+        A list of dicts, each with 'entity1', 'entity2', 'relation',
+        'chunk_id' - one per edge, preserving true stored direction.
+        Both a->b and b->a edges are included.
+    """
+    edges = [
+        (u, v, data)
+        for u, v, data in graph.edges(nbunch=[entity_a, entity_b], data=True)
+        if {u, v} == {entity_a, entity_b}
+    ]
+
+    return [
+        {"entity1": u, "entity2": v, "relation": data["relation"], "chunk_id": data["chunk_id"]}
+        for u, v, data in edges
+    ]

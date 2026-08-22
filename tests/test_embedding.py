@@ -81,3 +81,52 @@ def test_build_embedding_records_disambiguates_cross_chunk_duplicates() -> None:
     assert len(ids) == len(set(ids)), "IDs must be unique even for repeated base keys"
     assert ids[0] == "106_10_Taug_Tarzan_companion_of"
     assert ids[1] == "106_10_Taug_Tarzan_companion_of_1"
+    
+# add to tests/test_embedding.py
+
+from graph.canonicalization import normalize_entity_name
+
+
+def test_embedding_record_entities_match_canonicalization() -> None:
+    """Regression test: embedding metadata must use canonicalized entity
+    names, matching graph node keys exactly - otherwise hybrid retrieval
+    silently fails to find graph edges for a vector hit's entities.
+
+    Bug found Week 3 Day 4: build_embedding_records originally stored
+    raw entity names ("Taug") while graph nodes are keyed by
+    canonicalized names ("taug"), causing get_relationships_between()
+    to silently return [] for every hybrid search result.
+    """
+    df = pd.DataFrame([
+        {
+            "book_id": "106",
+            "chunk_id": "10",
+            "relations_parsed": [
+                {"entity1": "Taug", "entity2": "Bolgani, the gorilla", "relation": "enemy_of"}
+            ],
+        }
+    ])
+    records = build_embedding_records(df)
+
+    assert records[0].entity1 == normalize_entity_name("Taug")
+    assert records[0].entity2 == normalize_entity_name("Bolgani, the gorilla")
+    assert records[0].entity1 == "taug"
+    assert records[0].entity2 == "bolgani"
+
+
+def test_embedding_record_text_uses_raw_names_not_canonicalized() -> None:
+    """Display text should stay human-readable (raw casing), even though
+    metadata is canonicalized - these serve different purposes."""
+    df = pd.DataFrame([
+        {
+            "book_id": "106",
+            "chunk_id": "10",
+            "relations_parsed": [
+                {"entity1": "Taug", "entity2": "Tarzan", "relation": "companion_of"}
+            ],
+        }
+    ])
+    records = build_embedding_records(df)
+
+    assert "Taug" in records[0].text  # raw casing preserved in display text
+    assert records[0].text == "Taug is a companion of Tarzan"
