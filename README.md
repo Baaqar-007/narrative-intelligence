@@ -33,17 +33,39 @@ and relationships.
 
 ## Setup
 
+Create and activate a virtual environment, then install the package and its dependencies:
+
 ```bash
+python -m venv .venv
+source .venv/bin/activate        # macOS/Linux
+# .venv\Scripts\activate         # Windows (CMD)
+# .venv\Scripts\Activate.ps1     # Windows (PowerShell)
+
+pip install -r requirements.txt
 pip install -e .
-pip install sentence-transformers chromadb --break-system-packages
+```
+
+Run tests (optional):
+
+```bash
 python -m pytest tests/ -v
 ```
 
-Generated data (`data/`) is not tracked in git — it's fully reproducible
-from the notebook cells / scripts described below. `data/` is in
-`.gitignore`.
+## Scripts
+
+- `scripts/build_pipeline.py` — main data construction pipeline; internally calls `load_data.py`.
+- `scripts/run_benchmarks.py` — evaluation pipeline for models and vector embeddings.
+
+Run from the repository root:
+
+```bash
+python -m scripts.build_pipeline
+python -m scripts.run_benchmarks
+```
 
 ---
+
+
 
 # Week 1 — Knowledge Graph
 
@@ -499,6 +521,43 @@ increasing difficulty of coincidental keyword/embedding overlap as chains
 lengthen. The 3-hop uptick to 16% is most likely sampling noise at
 n=100 questions per hop, not a genuine reversal, and is reported as such
 rather than rationalized into a narrative.
+
+## Benchmark 5 (reproduced via scripts/run_benchmarks.py)
+
+### Single-hop direction-correctness vs. k
+| k | Hybrid accuracy |
+|---|---|
+| 1 | 34.0% |
+| 3 | 47.5% |
+| 5 | 55.5% |
+| 7 | 62.0% |
+| 10 | 69.0% |
+| 15 | 75.0% |
+| 20 | 80.0% |
+
+Consistent with the original exploratory finding (33.5%/55%/69% at
+k=1/5/10) - confirms the result reproduces cleanly from a fresh,
+from-scratch pipeline build, not an artifact of one development session's
+state. Accuracy keeps climbing through k=20 with no sign of plateauing
+yet, suggesting there's still real headroom in retrieval breadth beyond
+what was explored earlier (latency tradeoff still applies).
+
+### Accuracy vs. hop count
+| Hops | Vector-only baseline | Graph traversal |
+|---|---|---|
+| 1 | 41.0% | 99.0% |
+| 2 | 21.0% | 100.0% |
+| 3 | 14.0% | 100.0% |
+
+Rebuilt with natural chained phrasing at every hop depth (e.g. "who is
+the enemy of the companion of Taug"), replacing the earlier generic,
+hop-invariant template. This produces a clean, monotonically decreasing
+baseline (41%->21%->14%) - confirming the earlier exploratory run's
+noisy, non-monotonic numbers (21%/12%/16%, with an unexplained 3-hop
+uptick) were a phrasing artifact, not a real property of the systems
+being compared. The core finding holds and is now more cleanly evidenced:
+vector search degrades sharply as fact-chaining requirements increase,
+while graph traversal - which chains facts by construction - does not.
 
 ---
 
