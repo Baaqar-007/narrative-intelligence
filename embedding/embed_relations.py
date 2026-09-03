@@ -14,6 +14,7 @@ from graph.canonicalization import normalize_entity_name
 
 import pandas as pd
 from sentence_transformers import SentenceTransformer
+import os
 
 from embedding.relation_text import relation_to_sentence
 
@@ -109,8 +110,18 @@ def load_embedding_model(model_name: str = MODEL_NAME) -> SentenceTransformer:
 
     Returns:
         The loaded model, ready to pass into embed_records().
+        
+    Load the sentence embedding model once, for reuse across calls.
+
+    In Docker, EMBEDDING_MODEL_PATH points directly at the baked-in
+    local model folder, bypassing HF Hub's repo-id cache resolution
+    entirely - required since that resolution needs network access
+    even to check a hub-style cache, which fails under HF_HUB_OFFLINE.
+    Local dev (no env var set) is unaffected - falls back to the
+    normal name-based download/cache behavior.
     """
-    return SentenceTransformer(model_name)
+    local_path = os.environ.get("EMBEDDING_MODEL_PATH")
+    return SentenceTransformer(local_path or model_name)
 
 
 def embed_records(records: list[EmbeddingRecord], model: SentenceTransformer) -> list[list[float]]:

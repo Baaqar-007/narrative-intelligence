@@ -16,7 +16,7 @@ counterfactual reasoning.
 - **Week 1 (Knowledge Graph) — complete.**
 - **Week 2 (Temporal Layer) — complete.**
 - **Week 3 (Hybrid Retrieval) — complete.**
-- Week 4 (Deployment) — not started.
+- **Week 4 (Deployment) — complete.**
 
 ## Architecture
 
@@ -561,6 +561,81 @@ while graph traversal - which chains facts by construction - does not.
 
 ---
 
+# Week 4 — Deployment
+
+## The missing LLM step
+
+Weeks 1-3 built retrieval up to structured facts (`EnrichedHit` objects) -
+the pipeline's final step, `Hybrid Retrieval -> LLM -> Answer`, was never
+built until this week. `retrieval/answer_generation.py` closes that gap:
+retrieved facts are handed to an LLM with an explicit instruction not to
+chain or infer beyond what's stated, and to say plainly when a question
+can't be answered from the retrieved facts rather than guess. Verified
+against a real failure case: a 2-hop question ("who is the protector of
+the friend of the knight") initially produced a plausible-sounding but
+unsupported answer, chaining two unrelated single-hop facts. Fixed by
+making the prompt explicit that facts are isolated by default unless one
+fact states the connection directly - re-verified against the same
+question afterward.
+
+**LLM provider**: Groq (`openai/gpt-oss-20b`), chosen for free-tier
+capacity and speed on a low-complexity phrasing task. One real gotcha
+found: gpt-oss models are reasoning-style models that spend output-token
+budget on an internal reasoning trace by default: with a small
+`max_tokens`, this can consume the entire budget before any visible
+answer is produced, returning empty content with no error. Fixed via
+`reasoning_effort="low"` and a larger token budget, with the raw response
+logged as a fallback if content is ever empty again.
+
+## API (`api/`)
+
+FastAPI app, three endpoints: `GET /health`, `GET /books`, `POST /query`
+(book_id + question -> answer + cited sources, including `chunk_id`
+provenance per fact). A card-catalog-themed single-page frontend
+(`api/static/index.html`) is served at `/` - deliberately simple (no
+build step, no framework), styled around the project's actual
+differentiator: cited, graph-verified facts rendered as ink-stamped
+citation marks, not decoration for its own sake.
+
+## Deployment: the actual path, including the dead ends
+
+Worth documenting the real trail, not just the final answer, since most
+of the effort here was in verifying platform claims rather than writing
+code:
+
+1. **Hugging Face Spaces** (originally planned, matches the project's
+   original charter) - found, mid-build, that HF had recently locked
+   both the Docker and Gradio SDKs behind a paid plan for new Spaces,
+   with free accounts restricted to a GPU-burst tier (ZeroGPU) unsuited
+   to an always-on, CPU-only service. Ruled out.
+2. **Koyeb** - genuinely free, no card required, but a true (swap-
+   disabled) memory test showed the stack does not fit in its 512MB
+   free instance. Ruled out with a local test before attempting a real
+   deploy.
+3. **Modal** - no card required (OAuth-only signup), architecturally a
+   good fit (usage-metered rather than a fixed memory ceiling) - but
+   the actual free credit granted on signup was far smaller than
+   multiple independent articles described, insufficient for
+   meaningful uptime. Ruled out.
+4. **Chosen approach: self-hosted Docker + Cloudflare Tunnel, on-
+   demand.** Zero cost, no card, no platform dependency, and - the
+   deciding factor over leaving it "always on" locally - no background
+   resource cost between demos. The container and tunnel are started
+   only when the project is being shown (e.g. for a review), and
+   stopped after. Trade-off: the public URL is ephemeral (a fresh one
+   generates each time via Cloudflare Quick Tunnels) rather than a
+   fixed address - acceptable for a demo shown live, revisit with a
+   named tunnel + domain if a permanent link is ever needed.
+
+### Running the demo
+```bash
+docker build -t nie-api:local .
+docker run -p 7860:7860 -e GROQ_API_KEY=your_key nie-api:local
+# in a second terminal:
+cloudflared tunnel --url http://localhost:7860
+```
+---
+
 # Known limitations (full list)
 
 1. **Generic/collective entities unresolved** — "apes" vs "the apes",
@@ -593,6 +668,19 @@ while graph traversal - which chains facts by construction - does not.
 10. **Benchmark 4's baseline uses a phrasing-weak query template** —
     absolute numbers aren't comparable across benchmarks; only the
     within-experiment trend is valid (documented above, not hidden).
+11. **Memory footprint is driven mainly by PyTorch** (pulled in as
+    `sentence-transformers`'s default backend), not the embedding model
+    or vector data themselves. An ONNX Runtime backend would likely
+    shrink this substantially, reopening tighter-memory free hosting
+    options - not done, since it wasn't needed once self-hosting was
+    chosen, and reshaping the runtime now wouldn't carry over cleanly
+    to v2 anyway.
+12. **No multi-hop query routing in the live API.** `hybrid_search()`
+    only performs single-hop enrichment; the multi-hop graph traversal
+    that scored 72% vs. 26% in Week 3's benchmarks is not wired into
+    `/query`. Mitigated for now via the prompt fix above (the model
+    admits it can't answer rather than guessing), not by adding real
+    multi-hop retrieval - a legitimate v1.5/v2 item, not solved here.
 
 # Deferred to v2 (not implemented, not planned for v1)
 
@@ -608,10 +696,3 @@ while graph traversal - which chains facts by construction - does not.
 - Efficient, principled query-side direction/role detection.
 - Git branch-per-feature workflow (not needed for single-developer
   sequential work at v1's scale).
-
-# Roadmap
-
-- [x] Week 1 — Knowledge Graph
-- [x] Week 2 — Temporal Layer
-- [x] Week 3 — Hybrid Retrieval
-- [ ] Week 4 — Deployment

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Narrative Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #E8DFC8;
+    --paper-dark: #DCD0AE;
+    --paper-card: #F1E9D3;
+    --ink: #2B2620;
+    --ink-soft: #5B5342;
+    --green: #2F4B3C;
+    --green-dark: #223a2d;
+    --stamp: #8C3B2E;
+    --rule: rgba(43, 38, 32, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(rgba(43,38,32,0.035) 1px, transparent 1px);
+    background-size: 3px 3px;
+    color: var(--ink);
+    font-family: 'Source Serif 4', serif;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 40px;
+  }
+
+  .call-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(32px, 6vw, 48px);
+    line-height: 1.05;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 17px;
+    margin: 0;
+  }
+
+  .card {
+    background: var(--paper-card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 28px;
+    box-shadow: 0 1px 0 rgba(43,38,32,0.05);
+  }
+
+  .card + .card { margin-top: 20px; }
+
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  select, input[type="text"] {
+    width: 100%;
+    font-family: 'Source Serif 4', serif;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 11px 12px;
+  }
+
+  select:focus-visible, input:focus-visible, button:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .ask-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+  }
+
+  .ask-row input { flex: 1; }
+
+  button {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--green);
+    color: var(--paper-card);
+    border: none;
+    border-radius: 2px;
+    padding: 0 22px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  button:hover { background: var(--green-dark); }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  .answer-section { margin-top: 28px; }
+
+  .answer-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  .answer-text {
+    font-size: 19px;
+    line-height: 1.55;
+    margin: 0 0 24px;
+  }
+
+  .sources-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 16px;
+    margin-bottom: 12px;
+  }
+
+  .source {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    opacity: 0;
+    animation: stamp-in 0.35s ease forwards;
+  }
+
+  .source:nth-child(1) { animation-delay: 0.05s; }
+  .source:nth-child(2) { animation-delay: 0.12s; }
+  .source:nth-child(3) { animation-delay: 0.19s; }
+  .source:nth-child(4) { animation-delay: 0.26s; }
+  .source:nth-child(5) { animation-delay: 0.33s; }
+
+  @keyframes stamp-in {
+    from { opacity: 0; transform: rotate(-2deg) scale(1.08); }
+    to { opacity: 1; transform: rotate(-1.2deg) scale(1); }
+  }
+
+  .stamp-mark {
+    color: var(--stamp);
+    border: 1.5px solid var(--stamp);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    transform: rotate(-1.5deg);
+  }
+
+  .fact-text { color: var(--ink); }
+  .fact-text b { font-weight: 500; }
+
+  .empty-note, .error-note {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+
+  .error-note { color: var(--stamp); font-style: normal; }
+
+  footer {
+    margin-top: 36px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .source { animation: none; opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 480px) {
+    .ask-row { flex-direction: column; }
+    button { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="call-number">NIE · 823.912 — FICTION, RELATIONAL</div>
+      <h1>The Narrative Index</h1>
+      <p class="subtitle">Ask what a book actually says about its characters — every answer cites its source.</p>
+    </header>
+
+    <div class="card">
+      <div class="field">
+        <label for="book-select">Select a volume</label>
+        <select id="book-select"><option>Loading catalog…</option></select>
+      </div>
+      <div class="field">
+        <label for="question">Your question</label>
+        <div class="ask-row">
+          <input type="text" id="question" placeholder="Who is Taug's companion?" maxlength="500">
+          <button id="ask-btn">Ask</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="result"></div>
+
+    <footer>grounded in graph-verified facts — not generated from memory</footer>
+  </div>
+
+<script>
+const bookSelect = document.getElementById('book-select');
+const question = document.getElementById('question');
+const askBtn = document.getElementById('ask-btn');
+const result = document.getElementById('result');
+
+async function loadBooks() {
+  try {
+    const res = await fetch('/books');
+    const books = await res.json();
+    bookSelect.innerHTML = books
+      .map(b => `<option value="${b.book_id}">${b.title} — ${b.num_nodes} characters, ${b.num_edges} relations</option>`)
+      .join('');
+  } catch (e) {
+    bookSelect.innerHTML = '<option>Catalog unavailable</option>';
+  }
+}
+
+function renderResult(data) {
+  const sourcesHtml = data.sources.length
+    ? data.sources.slice(0, 8).map(s => `
+        <div class="source">
+          <span class="stamp-mark">chunk ${s.chunk_id}</span>
+          <span class="fact-text"><b>${s.entity1}</b> ${s.relation.replace(/_/g,' ')} <b>${s.entity2}</b></span>
+        </div>`).join('')
+    : '<p class="empty-note">No graph-verified sources found for this question.</p>';
+
+  result.innerHTML = `
+    <div class="card answer-section">
+      <div class="answer-label">Answer</div>
+      <p class="answer-text">${data.answer}</p>
+      <div class="sources-label">Sources (${data.sources.length})</div>
+      ${sourcesHtml}
+    </div>`;
+}
+
+async function ask() {
+  const q = question.value.trim();
+  const bookId = bookSelect.value;
+  if (!q || !bookId) return;
+
+  askBtn.disabled = true;
+  askBtn.textContent = '…';
+  result.innerHTML = '<p class="empty-note">Searching the volume…</p>';
+
+  try {
+    const res = await fetch('/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book_id: bookId, question: q })
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || 'Request failed');
+    renderResult(await res.json());
+  } catch (e) {
+    result.innerHTML = `<p class="error-note">Couldn't retrieve an answer: ${e.message}</p>`;
+  } finally {
+    askBtn.disabled = false;
+    askBtn.textContent = 'Ask';
+  }
+}
+
+askBtn.addEventListener('click', ask);
+question.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+
+loadBooks();
+</script>
+</body>
+</html>
