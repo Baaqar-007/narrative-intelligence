@@ -1,28 +1,13 @@
-# NIE v2 — Phase 1 Research Summary (Weeks 1–4)
+# NIE v2 — Phase 1 Research Summary (Weeks 1–5)
 
-> Synthesized reference covering the GraphRAG-adjacent literature and the
-> entity-resolution research thread reviewed during Phase 1.
-> This document captures what each
-> source implies for this project's design decisions, rather than
-> restating each paper.
-
-**Status legend**: ✅ read in full · 🔶 read via secondhand summary
-(not independently verified against source) · 📋 decision or proposal
-pending sign-off.
-
----
-
-## Document structure
-
-- **Design implications** subsections carry the load-bearing content
-  and are the fastest path back into this material after a gap.
-- **Open decisions** are collected at the end of each week and again in
-  a consolidated list at the close of the document — nothing here
-  should be treated as settled until those are resolved.
-- Paper identity was verified against the source PDF for every entry
-  below rather than assumed from filename or citation. Two mismatches
-  were caught this way (Weeks 1 and 3) and are called out explicitly,
-  since they affect what each source can and cannot support.
+> Compiled reference covering GraphRAG-adjacent literature and the
+> entity-resolution research thread. This document is the
+> synthesized, cross-referenced version — what each source means for
+> *this* project's decisions, not a restatement of each paper.
+>
+> Status markers: ✅ read in full · 🔶 read via secondhand summary
+> (not independently verified from source) · 📋 decision/proposal
+> pending sign-off.
 
 ---
 
@@ -32,47 +17,47 @@ pending sign-off.
 al. 2024, arXiv:2408.08921 (41 pages, read in full).
 
 **Identity note**: this is a broad survey of the GraphRAG methodology
-space, not Edge et al.'s original Microsoft GraphRAG paper (the
-citation `research_notes.md` originally pointed to). Edge et al.'s
-method is described concretely within the survey's indexing,
-generation, and industry sections, which provides sufficient secondhand
-grounding — the original paper was not independently read.
+space, *not* Edge et al.'s original Microsoft GraphRAG paper (which
+`research_notes.md` originally pointed to). Edge et al.'s method is
+described concretely within this survey (indexing, generation, and
+industry sections) — sufficient secondhand grounding; the original
+wasn't independently read.
 
 **What validates v1's existing design** (no adoption needed — v1
-already implements this):
-- NetworkX graph + templated-sentence embeddings + ChromaDB matches the
+already does this):
+- NetworkX graph + templated-sentence embeddings + ChromaDB = the
   survey's "Hybrid Indexing" pattern — the field's practical default,
   not a project-specific improvisation.
-- `relation_to_sentence()`'s templating corresponds to the survey's
-  "Natural Language" graph-format category, the most common choice in
-  the field.
-- `hybrid_search()`'s single-pass design matches "Once Retrieval," a
-  documented latency/accuracy tradeoff rather than an omission.
+- `relation_to_sentence()`'s templating = the survey's "Natural
+  Language" graph-format category — the most common choice in the
+  field.
+- `hybrid_search()`'s single-pass design = "Once Retrieval" — a
+  documented latency/accuracy tradeoff, not an omission.
 
-**What does not transfer, and why**:
+**What does *not* transfer, and why**:
 - Community-summary infrastructure (Edge et al.'s core mechanism)
-  addresses Query-Focused Summarization — "what are this corpus's
-  themes." NIE queries have a small, localized evidence set; there is
-  no QFS-shaped question in this project. This is a confirmed non-fit,
-  not a deferred maybe.
+  solves Query-Focused Summarization — "what are this corpus's
+  themes." Every NIE query has a small, localized evidence set; there
+  is no QFS-shaped question in this project. Confirmed no, not
+  deferred maybe.
 - LLM-based graph construction, used by every industrial system
   surveyed (Microsoft, NebulaGraph, AntGroup, Neo4j), conflicts
-  directly with the project's dataset-first constraint — a deliberate
-  minority choice, not an oversight.
+  directly with dataset-first — a deliberate minority choice, not an
+  oversight.
 
-**Most significant finding for the v2 roadmap**: Section 10.1 states
-that nearly all GraphRAG methods assume a static graph, and names
-dynamic/adaptive graph updating as a largely unexplored open direction
-with no citations of a solved approach. **v2 Phase 3 (simulating
-node/event removal and re-traversal) sits directly in this gap** —
-there is no existing recipe to adapt, and the design work is closer to
-original graph-algorithms work than an application of a known pattern.
+**Most important finding for the whole v2 roadmap**: §10.1 states
+nearly all GraphRAG methods assume a static graph; dynamic/adaptive
+graph updating is named as a barely-explored open direction, with no
+citations of a solved approach. **v2's Phase 3 (simulate node/event
+removal, re-traverse) sits exactly in this gap** — there's no existing
+recipe to adapt; the design work is closer to original graph-algorithms
+work than "apply pattern X."
 
 **Design input for Week 7 (live multi-hop wiring)**: implement as
-non-parametric, fixed-depth, single-pass retrieval — wire the existing,
-benchmarked BFS traversal directly in rather than an LLM-agent
-iterative loop. This has precedent in the field (Wang et al., GNN-RAG),
-not just as a complexity-avoidance default.
+non-parametric, fixed-depth, once retrieval — wire the existing
+benchmarked BFS traversal directly in, not an LLM-agent iterative
+loop. Real precedent for this in the field (Wang et al., GNN-RAG), not
+just a complexity-avoidance default.
 
 ---
 
@@ -80,81 +65,80 @@ not just as a complexity-avoidance default.
 
 **Source**: *Breaking the Static Graph: Context-Aware Traversal for
 Robust RAG*, Lau et al., arXiv:2602.01965, Feb 2026 (13 pages, read in
-full). Identity confirmed against project notes — no mismatch found.
+full). Identity confirmed against project notes — no mismatch.
 
-**Summary**: builds on HippoRAG 2's Personalized PageRank (PPR)
-retrieval. The paper's "Static Graph Fallacy": PPR transition weights
-are fixed at index time and don't discriminate by query, so probability
-mass diffuses into high-degree "hub" nodes — producing high partial
-recall but broken multi-hop evidence chains. The proposed fix is
-LLM-scored dynamic edge reweighting per query, combined with weak-entity-
-anchor seeding and a non-LLM key-fact passage boost.
+**What it is**: builds on HippoRAG 2's Personalized PageRank (PPR)
+retrieval. The "Static Graph Fallacy": PPR transition weights are
+fixed at index time and don't discriminate by query, so probability
+mass diffuses into high-degree "hub" nodes — high partial recall, but
+broken multi-hop evidence chains. Fix: LLM-scored dynamic edge
+reweighting per query, on top of weak-entity-anchor seeding and a
+non-LLM key-fact passage boost.
 
-**Applicability differs across two parts of v2**:
+**Does the critique transfer? Two different answers for two different
+parts of v2**:
 
-- **Week 7 (live multi-hop)**: does not transfer directly. CatRAG's
-  failure mode is a *recall* loss — PPR is stochastic, and probability
-  mass genuinely gets lost to hub nodes. NIE's `graph_n_hop_search` is
-  exhaustive BFS and deterministic; a hub node cannot cause it to miss
-  results within the hop radius. A related but distinct risk is worth
-  monitoring once Week 7 ships: hub entities flooding the neighborhood
-  with irrelevant results is a *precision* problem, not this recall
-  problem, and isn't worth addressing before it's measured.
-- **Phase 3 (simulation traversal)** — the genuine finding: does not
-  transfer, and this is a real negative result rather than a stretch.
-  CatRAG addresses graphs that are static *across queries* (fixed
-  topology, query-adaptive weights). v2's simulation requires graphs
-  that are static *across scenarios* — topology itself changes via real
-  node removal, and exact reachability/centrality is recomputed with no
-  stochastic weighting anywhere in that step. These are orthogonal
-  problems. CatRAG's fix mechanism (an LLM scoring edges to decide
-  traversal weighting) is also exactly what Design Principle 3 already
-  rules out for simulation, independent of whether the broader framing
-  applies.
+- **Week 7 (live multi-hop)**: not directly. CatRAG's failure is a
+  *recall* loss — PPR is stochastic, probability mass genuinely gets
+  lost to hubs. NIE's `graph_n_hop_search` is exhaustive BFS —
+  deterministic; a hub node can't cause it to miss anything within the
+  hop radius. A related but different risk is worth watching once
+  Week 7 ships: hub entities flooding the neighborhood with irrelevant
+  results is a *precision* problem, not this recall problem — not
+  worth solving before it's measured.
+- **Phase 3 (simulation traversal) — this is the genuine finding**:
+  does not transfer, and it's a real negative result, not a stretch.
+  CatRAG addresses graphs static *across queries* (fixed topology,
+  query-adaptive weights). v2's simulation needs graphs static *across
+  scenarios* (topology itself changes via real node removal, then
+  exact reachability/centrality is recomputed — no stochastic
+  weighting anywhere in that step). Orthogonal problems. CatRAG's
+  actual fix mechanism (an LLM scoring edges to decide traversal
+  weighting) is also exactly what Design Principle 3 already forbids
+  for simulation, independent of whether the framing resonates.
 
-**What does transfer**: CatRAG's **Full Chain Retrieval (FCR)** and
-**Joint Success Rate (JSR)** metrics — whether retrieval returned the
+**What genuinely transfers**: CatRAG's **Full Chain Retrieval (FCR)**
+and **Joint Success Rate (JSR)** metrics — did retrieval return the
 *entire* gold evidence chain, not just an overlapping subset — are the
 multi-hop generalization of the exact lesson v1's own Benchmark 1→2
-evolution found independently. This is concrete input for Phase 3's
+evolution already found independently. Concrete input for Phase 3's
 Week 12 evaluation design, where no ARF-style ground truth exists.
 
 **Secondary confirmation**: CatRAG explicitly rejects iterative/agentic
-retrieval on latency grounds, independently reinforcing the same "once
-retrieval, fixed-depth" conclusion as the Week 1 survey — two unrelated
-sources, same conclusion.
+retrieval for latency reasons, independently reinforcing the same
+"once retrieval, fixed-depth" call as Week 1's survey reading — two
+unrelated papers, same conclusion.
 
 **Status**: keep loaded. Role narrows from "traversal design input" to
-"evaluation-metric input plus a documented non-transfer finding."
+"evaluation-metric input + a documented non-transfer finding."
 
 ---
 
-## Week 3 — Entity resolution: three facets
+## Week 3 — Entity Resolution: three facets
 
-The unresolved v1 limitation (README, Known Limitations #1–2) is
-actually three distinct sub-problems, kept deliberately separate until
-Week 4 unifies them.
+The unresolved v1 limitation (README, Known Limitation #1–2) is really
+three distinct sub-problems the roadmap deliberately keeps separate
+until Week 4 unifies them.
 
 ### Facet 1 — Alias/nickname resolution ✅
 
 **Source**: Amalvy & Labatut, *Annotation Guidelines for Corpus
-Novelties: Part 2 – Alias Resolution*, arXiv:2410.00522 (14 pages, read
-in full).
+Novelties: Part 2 – Alias Resolution*, arXiv:2410.00522 (14 pages,
+read in full).
 
-**Correction**: this is a set of human annotation guidelines for
-building a gold corpus, not an automated clustering algorithm — an
-earlier project note described a method that isn't actually present in
-the document.
+**Correction**: this is human annotation guidelines for building a
+gold corpus, not an automated clustering algorithm — an earlier
+project note described a method that isn't actually present in the
+document.
 
-**Value**: a taxonomy of hard cases rather than a method. It confirms,
-with concrete examples, why v1's `difflib` fuzzy-match failed
-structurally rather than just numerically — true aliases can share
-**zero string overlap** (`Milady` → `Anne de Breuil`; `D'Artagnan` →
-`Charles de Batz de Castelmore, dit d'Artagnan`). It splits "alias
-resolution" into two real tiers: surface variants (mechanically
-tractable — honorific-stripping, name-part matching) versus true
-aliases (not mechanically solvable without external knowledge or
-narrative context).
+**Value**: a taxonomy of hard cases, not a method. Confirms with
+concrete examples why v1's `difflib` fuzzy-match failed structurally,
+not just numerically — true aliases can share **zero string overlap**
+(`Milady` → `Anne de Breuil`; `D'Artagnan` → `Charles de Batz de
+Castelmore, dit d'Artagnan`). Splits "alias resolution" into two real
+tiers: surface variants (mechanically tractable — honorific-stripping,
+name-part matching) vs. true aliases (not mechanically solvable at all
+without external knowledge or narrative context).
 
 ### Facet 2 — Coreference resolution ✅
 
@@ -163,143 +147,367 @@ Resolution at Book Scale*, arXiv:2507.12075, July 2025 (19 pages, read
 in full).
 
 **Correction**: an earlier project note understated the finding as
-"specialized resources solve it." The actual reported numbers:
-off-the-shelf models score 40–51 CoNLL-F1 at book scale (versus ~80+ on
-standard benchmarks); even the best specialized systems, fine-tuned on
-book-scale data, reach only 61–67. The gap never fully closes — this is
-a genuinely open problem by the paper's own account.
+"specialized resources solve it." Actual numbers: off-the-shelf models score
+40–51 CoNLL-F1 at book scale (vs. ~80+ on standard benchmarks); even
+the best specialized systems, fine-tuned on book-scale data, only
+reach 61–67 — the gap never fully closes. Genuinely open problem, by
+the paper's own admission.
 
-**Reusable pipeline shape**: a precision-first, recall-later funnel —
-link explicit named mentions first (high precision), verify, then
-expand to pronouns/generic phrases via windowed-then-grouped
-coreference passes. This matches CatRAG's coarse-to-fine pruning
-(Week 2), suggesting a recurring pattern wherever false positives are
-expensive downstream and false negatives are cheap to recover later.
+**Pipeline shape (the reusable part)**: precision-first, recall-later
+funnel — link explicit named mentions first (high precision), verify,
+*then* expand to pronouns/generic phrases via windowed-then-grouped
+coreference passes. Same shape as CatRAG's coarse-to-fine pruning
+(Week 2) — a recurring pattern wherever false positives are expensive
+downstream and false negatives are cheap to recover later.
 
-**Implications for Week 8**: ARF's 5-sentence chunking is the wrong
-granularity for this task by the paper's own diagnosis — antecedents
-several chunks back cannot resolve under a per-chunk pass. Separately,
-this paper's PER-only annotation scope independently matches v1's own
-PER-only scoping decision, a second point of convergence.
+**Concrete implications for Week 8**: ARF's 5-sentence chunking is the
+wrong granularity for this by the paper's own diagnosis — antecedents
+several chunks back can't resolve under a per-chunk pass. Also: this
+paper's PER-only annotation scope independently matches v1's own
+"PER-only scoping" decision — a second point of convergence.
 
 ### Facet 3 — Generic/collective entities 🔶
 
-**Source**: Bhattacharya & Getoor, *Collective Entity Resolution in
-Relational Data*. Not independently re-read for this summary; analyzed
-from an internally maintained summary of the source, since the source
-PDF is not currently in the project's reference set. Confidence is
-lower here than for the other two facets accordingly.
+**Source**: Bhattacharya, collective relational entity resolution.
+Not independently read for this summary; analyzed from an internally
+maintained summary of the source. Lower confidence than the other two
+facets accordingly.
 
-**What it describes**: disambiguating individual identity (for
-example, whether "W. Wang" in two papers is the same person) using
-relational co-occurrence — such as coauthorship — rather than string
-similarity alone, resolved collectively rather than pair-by-pair.
+**What it describes**: disambiguating individual identity (e.g., is
+`"W. Wang"` in two papers the same person?) using relational
+co-occurrence (coauthorship) rather than string similarity alone,
+resolved collectively rather than pair-by-pair.
 
-**Scope mismatch**: this method resolves *individual* identity, where
-exactly one true referent always exists to converge on. NIE's actual
-problem (`"apes"` vs. `"the apes"` vs. `"young apes"`) may have no
-single true referent at all — these may denote different narrative
-subsets rather than one entity under different names. The underlying
-*mechanism* (relational-neighborhood overlap as evidence) may still be
-useful; the *semantics* of what counts as a correct merge do not carry
-over, and the source paper's own framework does not resolve that gap.
+**Scope-mismatch flag**: this resolves *individual* identity — there
+is always exactly one true referent to converge on. NIE's actual
+problem (`"apes"` vs `"the apes"` vs `"young apes"`) may have no single
+true referent at all — different narrative subsets, not one entity
+under different names. The *mechanism* (relational-neighborhood
+overlap as evidence) may still transfer; the *semantics* of "correct
+merge" don't, and the paper's own framework doesn't resolve that gap.
 
-### Cross-facet finding: LLM-for-identity tension
+### Cross-facet finding: the recurring LLM-for-identity tension
 
-Three independent sources reviewed this week — Vrittanta-EN's event
-extraction, Amalvy & Labatut's note on generative models for historical
-lookups, and BookCoref's LLM-based mention verification — each reach
-for an LLM to verify identity over entities *already extracted*, rather
-than to extract new relations. This pattern recurring three times
-independently suggests it warrants one explicit project-wide decision
-(Week 4) rather than three separate ad hoc calls.
+Three independent sources this week (Vrittanta-EN's event extraction,
+Amalvy & Labatut's note on generative models for historical lookups,
+BookCoref's LLM-based mention verification) each reach for an LLM to
+verify identity over entities *already extracted*, not to extract new
+relations. This recurrence across unrelated sources suggests it
+warrants one explicit project-wide decision (Week 4), rather than
+three separate ad hoc calls.
 
 ---
 
-## Week 4 — Unified entity resolution proposal 📋
+## Week 4 — Unified Entity Resolution Proposal 📋
 
-**Why one design rather than three patches**: the facets are not
-independent. Coreference resolution needs alias merging done first, or
-pronouns resolve to fragmented, pre-merge name variants. Generic/
-collective resolution cannot reuse the alias/coref "merge into one
-node" logic at all, since Week 3 established that there is often no
-single ground-truth referent to merge toward.
+**Why one design, not three patches**: the facets aren't independent.
+Coreference resolution needs alias merging done *first*, or pronouns
+resolve to fragmented pre-merge name variants. Generic/collective
+resolution can't reuse the alias/coref "merge into one node" logic at
+all, because Week 3 established there's often no single ground-truth
+referent to merge toward.
 
 ### Recommended architecture: non-destructive resolution layer
 
-This follows a pattern v1 already uses twice — `relation_ontology.py`'s
-opt-in `is_canonical_relation()` filter, and the embedding dedup step —
-neither of which touches the raw graph. Entity resolution should follow
-the same shape: the existing `(book_id, normalized_entity_name)` graph
-stays exactly as built, and a new `resolution/` module holds a
-`resolution_map` (raw name → resolved ID, tagged with tier and
-confidence) that retrieval opts into before graph lookup. Under this
-design, a bad resolution decision becomes a metadata edit rather than a
-graph-corrupting one.
+Same pattern v1 already used twice — `relation_ontology.py`'s opt-in
+`is_canonical_relation()` filter, and the embedding dedup step —
+neither touches the raw graph. Entity resolution should match: the
+existing `(book_id, normalized_entity_name)` graph stays exactly as
+built; a new `resolution/` module holds a `resolution_map` (raw name →
+resolved ID, tagged with tier and confidence) that retrieval opts into
+before graph lookup. A bad resolution decision becomes a metadata
+edit, not a graph-corrupting one.
 
 ### Three-stage funnel, in dependency order
 
-1. **Stage A — Extended mechanical alias resolution.** Extends Week 1's
-   appositive-stripping with honorific/name-part rules drawn from the
-   Amalvy & Labatut taxonomy. Deterministic, no new dependencies. Runs
-   first, since everything downstream needs a stable name list.
+1. **Stage A — Extended mechanical alias resolution.** Extend Week 1's
+   appositive-stripping with honorific/name-part rules from the Amalvy
+   & Labatut taxonomy. Deterministic, no new dependencies. Runs first
+   — everything downstream needs a stable name list.
 2. **Stage B — Coreference expansion.** ARF already emits raw
-   pronoun/descriptor entity strings (confirmed via the README's
-   Benchmark 3 "his brother" caveat). Requires book-level,
-   windowed-then-grouped context per BookCoref's pattern rather than
-   chunk-level processing, and a new coreference-model dependency
-   (flagged below). Output is stored with a confidence tier and never
-   silently merged as ground truth.
-3. **Stage C — Hard aliases and generic/collective entities, not
-   auto-merged.** Hard aliases are flagged as `flagged_candidate` via
-   relational-neighborhood overlap and never auto-merged.
-   Generic/collective entities are **reframed as a missing *relation*
-   problem rather than a resolution problem** — represented as
-   `"young apes" —instance_of→ "apes"`, an edge rather than a node
-   merge. This sidesteps the "what counts as correct" question
-   entirely. This is a firm line rather than a gray area: the edge may
-   only be produced by a mechanical heuristic (shared head noun or
-   substring); an LLM-inferred relation here would constitute new
-   relation extraction, which runs against Design Principle 2.
+   pronoun/descriptor entity strings (confirmed: README's Benchmark 3
+   "his brother" caveat). Needs book-level, windowed-then-grouped
+   context per BookCoref's pattern, not chunk-level. Requires a new
+   coreference-model dependency (flagged below). Output stored with a
+   confidence tier, never silently merged as ground truth.
+3. **Stage C — Hard aliases and generic/collective entities —
+   deliberately not auto-merged.** Hard aliases: flag as
+   `flagged_candidate` via relational-neighborhood overlap, never
+   auto-merged. Generic/collective entities: **reframed as a missing
+   *relation* problem, not a resolution problem** — represent
+   `"young apes" —instance_of→ "apes"` as an edge, not a node merge.
+   Sidesteps the "what does correct even mean" question entirely. Hard
+   line, not a gray area: this edge can only come from a mechanical
+   heuristic (shared head noun/substring) — LLM-inferred relations here
+   would be new relation extraction, squarely against Principle 2.
 
-### Evaluation — a genuine gap, not an oversight
+### Decisions — resolved (2026-09-05)
 
-ARF has no ground truth for entity resolution, unlike relations.
-Recommended order: **extrinsic evaluation first** — re-run v1's
-existing Benchmark 2/3 pipeline before and after resolution and check
-whether accuracy moves (no additional cost, reuses existing
-infrastructure). Fall back to small-scale manual annotation (a
-scaled-down Amalvy & Labatut / BookCoref style) only if the extrinsic
-signal proves too noisy to read.
+1. **LLM-for-identity-verification boundary**: **approved, scoped
+   narrowly.** LLM may act only as a bounded verifier over existing
+   candidate entities (Stage B mention-linking checks, Stage C hard-alias
+   candidate confirmation) — never to create new entities or relations.
+   Stage C's generic/collective `instance_of` edges remain
+   mechanical-heuristic-only regardless (this was already a hard line,
+   not a gray area — now doubly confirmed, not loosened by decision 1).
+2. **Coreference dependency approach**: **approved as off-the-shelf,
+   not fine-tuned.** Use a pretrained coreference model as-is; do not
+   fine-tune or build one in-house unless a later evaluation
+   (Benchmark 2/3 regression check, per the evaluation plan above)
+   shows it's actually necessary. Specific model still unselected —
+   to be picked once a feasibility smoke-test against real ARF text is
+   run (see "Next concrete step" below). Note: the bounded-verifier
+   LLM from decision 1 can reuse v1's existing Groq/gpt-oss-20b setup
+   directly — no new API dependency for that narrower role. The
+   coreference *engine* itself (finding and clustering mentions) still
+   needs a dedicated model; the two roles are not interchangeable
+   despite both being "an LLM could technically do this."
+
+### Evaluation — a real gap, not an oversight
+
+ARF has no ground truth for entity resolution (unlike relations).
+Recommended order: **extrinsic first** — re-run v1's existing
+Benchmark 2/3 pipeline before/after resolution and see if accuracy
+moves (free, reuses existing infra). Fall back to small manual
+annotation (scaled-down Amalvy & Labatut / BookCoref style) only if
+the extrinsic signal is too noisy to read.
 
 **Scope note**: PER-type entities remain the primary target, matching
-v1's own PER-only scoping; other entity types are deferred pending a
-measured need.
+v1's own PER-only scoping — other types deferred without a measured
+need.
 
 ---
 
-## Cross-cutting patterns across independent sources
+## Week 4 addendum — empirical validation in `notebooks/explore_entity_resolution.ipynb`
 
-These weren't designed for comparison — they surfaced from reading
-unrelated papers in sequence, which is what makes the convergence worth
+Real findings from testing the Week 4 proposal's assumptions against
+actual v1 data, not from reading — recorded here so they don't need
+rediscovering.
+
+- **`chunk_id` loads as string dtype from the parquet**, not int.
+  Sorting/`.min()`/`.max()` on it are lexicographic, not numeric,
+  unless explicitly cast — silently produces a nonsense-looking range
+  and a "gappy" passage reconstruction if not caught. Confirmed the
+  underlying data itself is fine once cast (book 106: true range
+  0–882, zero gaps) — this was a script bug, not a data bug, but a
+  real one, and easy to reproduce accidentally again on other books.
+- **New dependency conflict**: `fastcoref` requires `transformers`
+  4.x; v1's stack is on 5.x. Resolved via a separate venv — and this
+  should be the *permanent* answer, not a workaround. Entity
+  resolution's `resolution_map` is offline-precomputed, consumed (not
+  generated) by the live API — same shape as v1's existing
+  `scripts/build_pipeline.py` vs. `api/` split. The dependency never
+  needs to coexist with the serving environment at runtime.
+- **Memory ceiling found empirically, not assumed**: `FCoref`
+  (RoBERTa-backed, plain O(n²) self-attention) failed once with a raw
+  allocation error at ~60 chunks / ~6,600 words on a single call, then
+  succeeded on an identical rerun — confirmed not a PyTorch allocator
+  warm-up artifact (reproduced fresh-kernel). Conclusion: a soft
+  ceiling dependent on concurrent system load, not a deterministic
+  hard limit — a single successful run at this size should not be
+  read as confirmation of a safe threshold. Book 106 is 883 chunks total, ~15x
+  this test size — **whole-book single-call processing is confirmed
+  infeasible on this hardware**, not just discouraged by BookCoref's
+  own architecture recommendation. Two independent justifications
+  (BookCoref's accuracy argument, this memory-engineering finding) now
+  point at the same windowed-processing requirement for Stage B.
+- **`LingMessCoref` tested as the Longformer-backed alternative — found a different, more dangerous failure mode, not a fix.** At 60 chunks, `predict()` silently returned an empty list — no exception, no warning — rather than erroring. Confirmed working at 17 chunks. Ceiling bracketed between 17 (works) and 60 (silently fails), exact value not yet found. Also confirmed ~14x slower than `FCoref` in the range it does handle, matching the model's own published benchmark. **Silent truncation is worse than `FCoref`'s crash**: a crash is loud and debuggable; an empty return is indistinguishable from "nothing to resolve here" unless explicitly checked for, and would silently produce an incomplete `resolution_map` with no indication anything was skipped. Directly relevant to Principle 1 — this isn't the "invented facts" failure Principle 2 guards against, it's the mirror-image failure (silently omitted real ones), and arguably harder to catch.
+- **Conclusion, independently reached**: neither model is safe for a single full-book call, for two unrelated reasons (memory instability vs. silent length-based dropping) — model choice is secondary to building windowing first; comparing models without windowing would be comparing both under conditions neither is meant to run in.
+- **Real gap flagged, not yet closed**: nothing in this exploration has yet verified a *genuine cross-chunk* resolution (a pronoun correctly linked to an antecedent introduced several chunks earlier) — every successful run so far may only have needed local, within-window context. This is the actual capability Stage B exists for; it hasn't been tested even once yet. First concrete task for the next research session, once windowing exists.
+
+---
+
+## Week 5 — Events as first-class graph nodes 📋
+
+**ROADMAP's required first step**: audit ARF's existing 414
+`EVNT`-typed entity occurrences before assuming new extraction is
+needed — done in `notebooks/explore_events.ipynb`, on real data, not
+assumed.
+
+### Audit findings (own data, not literature)
+
+- 414 EVNT occurrences / 331 unique raw strings, across 74/96 books.
+- Manual sampling: a genuine mix — real historical events
+  (`Battle of Bull Run`), artistic-work titles (`Tristan and Isolde`),
+  structural extraction artifacts (`'CHAPTER VI'` tagged as an event),
+  and generic recurring concepts (`breakfast`, `arrest`), not mostly
+  removable specific occurrences.
+- **Confirmed mistagging, not just ambiguity**: `Tristan and Isolde`
+  tagged both `EVNT` and `OBJ` within the same book, same person
+  involved. Corpus-wide, 1,119 distinct strings carry more than one
+  entity type — caveat: checked globally, not per-book like graph node
+  identity; some fraction is legitimate cross-book homonymy, not all
+  noise. Re-scoping per-book before trusting the number further is a
+  flagged follow-up, not yet done.
+- **EVNT-to-EVNT relations: 3 instances in the entire 96-book corpus.**
+  No sequencing/causality signal exists in current relations to build
+  simulation ordering on — decisive on its own, independent of the
+  type-quality question.
+- **Hidden-event check** (does event signal exist in relation *type*,
+  independent of the unreliable EVNT tag?): top-30 relation types are
+  almost entirely relationship *states* (`companion_of`, `friend_of`,
+  `sibling_of`), not events. Full 48-type sweep for event-shaped verbs:
+  `kills` (2), `married_to` (2), `attacks` (12), `captured_by` (15),
+  `captures` (2) — 33 instances total, corpus-wide. Thin, and decisive.
+
+### Vauth & Gius, *Event Annotations of Prose* (2022) ✅ — read in full, 6 pages
+
+**Identity confirmed** against project notes — no mismatch.
+
+**Dataset itself: not usable, decisively.** Six German-language prose
+texts (Kleist, Kafka, Fontane, et al.) — ARF is entirely English. Also
+a different representational level entirely: per-subclause
+narratological typing (non_event / stative_event / process /
+change_of_state), not named event entities linked to participants via
+relations. Even ignoring language, this schema doesn't produce the
+artifact v2 needs (a removable node with participants).
+
+**But the taxonomy explains the audit's own findings, which is worth
+more than the dataset would have been.** Their stative vs.
+process/change_of_state distinction maps precisely onto what the audit
+found: ARF's dominant relation types (`companion_of`, `friend_of`,
+`sibling_of`, `spouse_of`) are all *stative* in Vauth & Gius's terms;
+genuinely event-shaped, change-of-state relations are rare (33
+corpus-wide) because **ARF's 48-type ontology was built to capture
+character relationships, not events** — a structural blind spot in the
+ontology's own design, not a GPT-4o extraction failure. Better
+explanation than "extraction missed things," arrived at only because
+the paper was read rather than skipped once the dataset was ruled out.
+
+**IAA caution, applies regardless of path chosen**: core `event_type`
+classification gets workable agreement (0.57–0.75 Krippendorff's α)
+even among trained annotators with a published guideline and regular
+resolution meetings — but several finer properties (`unpredictable`,
+`persistent`) score **negative** α on multiple texts, i.e.
+worse-than-chance agreement among human experts. Real evidence the
+underlying task has genuine ambiguity at the property level, not just
+an extraction-quality problem — temper expectations on any method's
+ability to cleanly classify event *properties*, even where classifying
+*that something is an event* works reasonably.
+
+### Decision: two-tier design, then corrected after checking the data
+
+Proposed design (mechanical-first, dataset-first, non-destructive —
+same `resolution_map` shape as Week 4, sits alongside the raw graph,
+never mutates it):
+
+1. **Tier 1 — event-shaped relations, direct edge reification.**
+2. **Tier 2 — EVNT-typed entities, tiered `event_candidate` map**:
+   mechanical exclude (structural artifacts, bare pronouns) →
+   flagged-not-excluded (creative-work-verb pattern, generalized to
+   "raw string also tagged with a different type elsewhere in the same
+   book" — the general version of what caught `Tristan and Isolde`) →
+   `needs_review` (tractable at Phase 4's single-book scope — low
+   dozens, not 331).
+
+**Tier 1's "no filtering needed, always PER↔PER" claim was checked
+against all 33 real rows and falsified — not uniformly, but by
+relation type, which changes the design more usefully than a blanket
+rejection would have**:
+
+- `attacks` (12/12): **never** PER↔PER — always targets FAC/LOC/VEH
+  (`Tyler's regiments → the wall`, `McDowell → Henry Hill`). Consistent
+  pattern, not noise: means "military force assaults a place," a
+  structurally different event shape (actor + target-location) than a
+  person-harm schema. Real events, wrong schema if forced into
+  victim/perpetrator roles.
+- `captured_by`/`captures` (13/16 clean): mostly holds, but 3 real
+  exceptions — `Regulus captured_by Carthaginians` (ORG, not PER, but
+  still a sensible event — schema needs to tolerate non-PER
+  participants), plus two genuinely odd non-person captures (`rope
+  captures tiger`, `commander captures frigate`) that should not
+  auto-promote.
+- `kills` (n=2): surfaced a deeper problem than relation reliability —
+  `tiger (PER) kills sheep (PER)`, both animals mistagged `PER`. The
+  `PER` type tag itself can't be trusted as "this is a human
+  character," which matters well beyond this one relation type.
+- `married_to` (2/2): clean, unambiguous failure — both instances
+  link a person to a *location* (`Arthur Rushton married_to London`),
+  reading as GPT-4o conflating "married at this venue" with "married
+  to this person." 2/2 wrong on an unambiguous relation type — a real
+  negative finding, not a hedge, same shape as Week 1's `used_by`
+  direction bug.
+- No exact chunk-boundary duplicates found in this sample (the
+  specific worry raised beforehand) — worth recording that the check
+  disconfirmed its own hypothesis, not just that it ran.
+
+**Corrected recommendation**: no blanket Tier 1 auto-promotion.
+`captured_by`/`captures` stay in Tier 1 with a participant-type
+tolerant schema and the 3 non-PER-PER exceptions routed to
+`needs_review`; `attacks` stays but as a structurally distinct event
+subtype, not forced into a person-harm role schema; `kills` and
+`married_to` move to `needs_review` given 100% and 2/2 failure rates
+respectively in the only evidence available.
+
+**Genuinely open, not yet decided**: event node edge semantics —
+generic `involved_in` for both participants, or role-differentiated
+(`victim_of`/`perpetrator_of`, `actor_of`/`target_of` for the
+`attacks` subtype)? Does the original binary relation edge get removed
+once an event node exists, or stay as a non-destructive layer
+alongside it (matching the pattern used everywhere else so far)? Also
+open: whether `Cassandra captured_by Greeks` and `Andromache
+captured_by Greeks` (same chunk, same captor) is one event with two
+participants or two separate events — a real modeling choice, not
+urgent, but not yet made either.
+
+**Vrittanta-EN (LLM-prompt-based event extraction)**: not read. Ruled
+out as the next step, not merely deferred — it would create graph
+structure ARF never provided, which is categorically different from
+Week 4's approved LLM-verifier carve-out (identity judgment over
+existing entities) and would need its own separate exception to
+Principle 2, not an extension of the one already granted.
+
+---
+
+## Cross-cutting patterns found across independent sources
+
+These weren't designed to compare — they surfaced from reading
+unrelated papers in sequence, which makes the convergence worth
 recording:
 
 - **Precision-first, recall-later funnels** — CatRAG's coarse-to-fine
-  edge pruning and BookCoref's link-then-expand pipeline share this
-  shape, which recurs wherever false positives are expensive downstream
-  and false negatives are cheap to recover later.
-- **"Once retrieval" over iterative/agentic retrieval** — argued for
-  independently by both the GraphRAG survey (§6.2.4's tradeoff
-  analysis) and CatRAG (explicit latency-based rejection of iterative
-  refinement).
+  edge pruning, BookCoref's link-then-expand pipeline. Same shape
+  wherever false positives are expensive downstream and false
+  negatives are cheap to recover later.
+- **"Once retrieval" over iterative/agentic retrieval** — independently
+  argued for by both the GraphRAG survey (§6.2.4's tradeoff analysis)
+  and CatRAG (explicit latency rejection of iterative refinement).
 - **Static graphs as an open problem, not a solved one** — the
-  GraphRAG survey names this directly (§10.1); CatRAG is the only
-  source engaging with a version of it, but along a different axis
-  (query-time weighting rather than scenario-time topology change).
-- **LLM-for-identity-verification, not extraction** — three independent
-  entity-resolution sources reach for this same pattern, which is
-  consistent enough to warrant one project-wide decision (Week 4)
-  rather than three separate calls.
+  GraphRAG survey names it directly (§10.1); CatRAG is the only source
+  engaging with a version of it, but for a different axis (query-time
+  weighting, not scenario-time topology change).
+- **LLM-for-identity-verification, not extraction** — three
+  independent entity-resolution sources reach for this pattern. Real
+  enough to need one project-wide decision (Week 4), not three
+  separate calls.
 
 ---
 
+## Decision log
+
+1. ✅ **Resolved** — LLM permitted only as a bounded verifier over
+   existing candidate entities; never to create new entities or
+   relations.
+2. ✅ **Resolved** — pretrained, off-the-shelf coreference model;
+   no fine-tuning/in-house build unless a later evaluation shows it's
+   necessary.
+3. 🔲 **Still open** — which specific pretrained coreference model.
+   Next concrete step: a small feasibility smoke-test against real ARF
+   book text (not a Week 8 build — just "does candidate model X
+   produce sane output on our actual data at all"), same spirit as
+   v1's pre-deploy platform verification (README, Week 4). Requires
+   running against the real dataset, so this happens in the project's
+   own notebook/environment, not this research-summary session.
+4. ✅ **Resolved** — events become first-class graph nodes via a
+   two-tier, non-destructive design (edge reification for event-shaped
+   relations + tiered `event_candidate` map for EVNT-typed entities),
+   per-relation-type gating corrected against real data, not blanket.
+   No new extraction; Vrittanta-EN ruled out, not deferred.
+5. 🔲 **Still open** — event node edge semantics (generic `involved_in`
+   vs. role-differentiated per event subtype); whether the original
+   binary relation edge is removed or kept alongside the new event
+   node; single-event-multi-participant modeling (the `Cassandra`/
+   `Andromache`/`Greeks` case). Flagged for Week 9, not yet decided.
+6. 🔲 **Still open** — re-scope the 1,119 multi-typed-string count
+   per-book (currently global) before it's used to argue anything
+   beyond the one confirmed `Tristan and Isolde` example.

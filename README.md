@@ -8,15 +8,25 @@ in Fiction (ARF)** dataset. It does **not** perform relation extraction — ARF
 already provides entities and relationships; this project focuses on graph
 construction, retrieval, and grounded question answering.
 
-Version 2 (not started) will introduce narrative simulation and
-counterfactual reasoning.
+Version 2 introduces narrative simulation and counterfactual
+reasoning — "what if X happened differently" answered via graph
+structure, not LLM inference. Phase 1 (research) is complete; Phase 2
+(build) has not started. Research findings
+and decisions: `docs/research-notes.md`.
 
 ## Status
 
-- **Week 1 (Knowledge Graph) — complete.**
-- **Week 2 (Temporal Layer) — complete.**
-- **Week 3 (Hybrid Retrieval) — complete.**
-- **Week 4 (Deployment) — complete.**
+**Version 1**
+- Week 1 (Knowledge Graph) — complete.
+- Week 2 (Temporal Layer) — complete.
+- Week 3 (Hybrid Retrieval) — complete.
+- Week 4 (Deployment) — complete.
+
+**Version 2**
+- Phase 1 (Research, Weeks 1–5) — complete. See
+   `docs/research-notes.md.md` for findings and
+   decisions.
+- Phase 2 (Build, Weeks 6–9) — not started.
 
 ## Architecture
 
