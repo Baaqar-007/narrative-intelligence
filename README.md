@@ -692,6 +692,18 @@ cloudflared tunnel --url http://localhost:7860
     admits it can't answer rather than guessing), not by adding real
     multi-hop retrieval - a legitimate v1.5/v2 item, not solved here.
 
+14. **Adaptive temporal binning (`N = clamp(total_relations/15, 6,20)`) is only actually adaptive for ~12% of the corpus.** 84/96
+    books exceed the 300-relation threshold that hits the N=20 cap,
+    so the vast majority of books get the same flat bin count
+    regardless of how much denser one is than another above that
+    line (e.g. book 44 at 2,667 relations and book 106 at 1,280 both
+    get N=20). Discovered incidentally while corpus-testing v2's
+    phrase-parsing module (Week 6), not a bug in anything built this
+    session — a previously undocumented property of v1's own binning
+    formula. Not fixed; logged for awareness, revisit only if it
+    proves to actually matter for something (e.g. temporal-query
+    resolution feeling too coarse on dense books).
+
 # Deferred to v2 (not implemented, not planned for v1)
 
 - Arbitrary book upload (would require a real relation-extraction
