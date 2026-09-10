@@ -20,8 +20,9 @@ import networkx as nx
 import pandas as pd
 
 from embedding.vector_store import query_relations
+from embedding.relation_text import relation_to_question
 from graph.canonicalization import normalize_entity_name
-from graph.relation_ontology import is_canonical_relation
+# from graph.relation_ontology import is_canonical_relation
 from retrieval.hybrid_search import hybrid_search
 
 
@@ -41,42 +42,26 @@ class BenchmarkQuestion:
     source_relation: str
 
 
+
 def generate_questions(df: pd.DataFrame, n_samples: int = 200, seed: int = 42) -> list[BenchmarkQuestion]:
-    """Sample canonical relation instances and generate single-hop
-    benchmark questions.
-
-    Args:
-        df: Parsed ARF dataframe (e.g. output of ingestion.load_data.load_and_clean_arf()).
-        n_samples: How many questions to generate.
-        seed: Random seed, for reproducible sampling.
-
-    Returns:
-        A list of BenchmarkQuestions, sampled across multiple books.
-    """
     rng = random.Random(seed)
 
     candidates = []
     for _, row in df.iterrows():
         for r in row["relations_parsed"]:
-            if is_canonical_relation(r["relation"]):
+            if relation_to_question(r["entity1"], r["relation"]) is not None:
                 candidates.append((row["book_id"], r))
 
     sampled = rng.sample(candidates, min(n_samples, len(candidates)))
 
     questions = []
     for book_id, r in sampled:
-        readable_relation = r["relation"].replace("_", " ")
-        if readable_relation.endswith(" of"):
-            query = f"Who is {readable_relation} {r['entity1']}?"
-        else:
-            query = f"Who is the {readable_relation} of {r['entity1']}?"
         questions.append(BenchmarkQuestion(
-            query=query,
+            query=relation_to_question(r["entity1"], r["relation"]),
             book_id=book_id,
             correct_answer=normalize_entity_name(r["entity2"]),
             source_relation=r["relation"],
         ))
-
     return questions
 
 
@@ -182,16 +167,37 @@ class NHopQuestion:
     hops: int
 
 
-def _chain_phrase(start: str, relations: list[str]) -> str:
-    """Builds a natural-language nested phrase from a chain of relations,
-    e.g. start='taug', relations=['companion_of','enemy_of'] ->
-    "Who is the enemy of the companion of taug?"
+
+def _chain_phrase(start: str, relations: list[str]) -> str | None:
+    """Build a step-by-step, direction-verified question from a chain
+    of relations - NOT nested possessives ("the enemy of the companion
+    of X"), which reproduces the single-hop direction bug, compounded
+    once per hop (confirmed on real corpus data - see Week 7 findings).
+
+    Each step reuses relation_to_question() directly - the first hop
+    with the real start entity as subject, every subsequent hop with
+    "that entity" as a placeholder subject referring to the previous
+    step's (unknown) answer. Correctness by construction: every
+    individual step is independently verified, nothing new is derived
+    by chaining.
+
+    Returns:
+        A multi-sentence question string, or None if ANY relation in
+        the chain lacks a verified template - one unverified hop
+        anywhere invalidates the whole chain's ground truth.
     """
-    phrase = start
-    for rel in relations:
-        readable = rel.replace("_", " ")
-        phrase = f"the {readable} of {phrase}"
-    return f"Who is {phrase}?"
+    steps = []
+    subject = start
+    for i, rel in enumerate(relations):
+        question = relation_to_question(subject, rel)
+        if question is None:
+            return None
+        if i == 0:
+            steps.append(question)
+        else:
+            steps.append("Then, " + question[0].lower() + question[1:])
+        subject = "that entity"
+    return " ".join(steps)
 
 
 def generate_nhop_questions(corpus: dict[str, nx.MultiDiGraph], hops: int, n_samples: int = 100, seed: int = 42) -> list[NHopQuestion]:
@@ -211,9 +217,11 @@ def generate_nhop_questions(corpus: dict[str, nx.MultiDiGraph], hops: int, n_sam
 
     questions = []
     for book_id, path_info in sampled:
-        query = _chain_phrase(path_info["start"], path_info["relations"])
+        phrase = _chain_phrase(path_info["start"], path_info["relations"])
+        if phrase is None:
+            continue
         questions.append(NHopQuestion(
-            query=query,
+            query=phrase,
             book_id=book_id,
             start_entity=path_info["start"],
             correct_answer=path_info["end"],

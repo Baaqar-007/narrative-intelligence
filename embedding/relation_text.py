@@ -78,3 +78,51 @@ def relation_to_sentence(entity1: str, entity2: str, relation: str) -> str:
 
     readable_relation = relation.replace("_", " ")
     return f"{entity1} {readable_relation} {entity2}"
+
+_QUESTION_OVERRIDES: dict[str, str] = {
+    "travel_to": "Where does {entity1} travel to",
+}
+
+
+def _statement_to_question(template: str) -> str | None:
+    """Wh-front a '{entity1} is/was <predicate> {entity2}' statement
+    into a 'Who is/was {entity1} <predicate>' question stem, by moving
+    the existing entity2 slot - no relation-inversion knowledge
+    needed, since entity1/entity2's roles are never touched, only
+    reordered.
+
+    Returns None if the template doesn't match the expected
+    copula-first pattern (needs a manual override instead).
+    """
+    tokens = template.split()
+    if len(tokens) < 3 or tokens[0] != "{entity1}" or tokens[-1] != "{entity2}":
+        return None
+    copula = tokens[1]
+    if copula not in ("is", "was"):
+        return None
+    middle = tokens[2:-1]
+    return f"Who {copula} {{entity1}} {' '.join(middle)}"
+
+
+def relation_to_question(entity1: str, relation: str) -> str | None:
+    """Build a direction-correct question asking for entity2, given
+    entity1 and the relation type.
+
+    Deliberately only supports relation types with a verified
+    MANUAL_TEMPLATES entry (or an explicit override) - unlike
+    relation_to_sentence()'s generic fallback, an unverified direction
+    here would silently test the wrong thing in a direction-aware
+    benchmark. Returns None for anything without a verified template;
+    callers should skip such relations rather than guess.
+    """
+    override = _QUESTION_OVERRIDES.get(relation)
+    if override is not None:
+        return override.format(entity1=entity1) + "?"
+
+    template = MANUAL_TEMPLATES.get(relation)
+    if template is None:
+        return None
+    stem = _statement_to_question(template)
+    if stem is None:
+        return None
+    return stem.format(entity1=entity1) + "?"
