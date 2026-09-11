@@ -1,16 +1,78 @@
 """Benchmark: hybrid retrieval vs. vector-only baseline, using ARF's
 ground-truth relations to auto-generate evaluation questions.
 
-History note: earlier iterations of this module included a plain
-entity-membership metric (evaluate_baseline/evaluate_hybrid) that
-turned out unable to detect hybrid retrieval's actual improvement
-(direction correctness) - both systems scored identically (55% at
-k=5), which was itself a real, documented finding (see README), not a
-bug. That metric and the multi-hop-specific predecessors of the
-functions below (MultiHopQuestion, find_two_hop_paths,
-graph_multihop_search, evaluate_multihop_baseline/graph) were removed
-after being superseded by the general n-hop versions kept here. Full
-history is in git log, not preserved as dead code.
+Week 7 rewrite - what changed and why (kept in-module, not just in
+chat history, per this project's own convention of documenting
+hard-won findings next to the code they affect):
+
+1. SINGLE-HOP PHRASING BUG (found and fixed first, before any
+   traversal work). generate_questions() used to derive question
+   phrasing ad hoc from the raw relation string, independently of
+   embedding.relation_text.MANUAL_TEMPLATES - two sources of truth
+   for the same direction fact, and only one was verified. Confirmed
+   on real data: child_of, protector_of, and leader_of all produced
+   questions asking the OPPOSITE of their own ground truth (e.g. "Who
+   is child of Will?" naturally asks who Will's child is; ground
+   truth was Will's parent). Fixed by deriving questions mechanically
+   from the already-verified templates (relation_to_question()),
+   rather than re-deriving direction from the relation string a
+   second time. Scope is now 31/48 canonical relation types (those
+   with a verified template) - a real, deliberate narrowing, not an
+   oversight.
+
+2. N-HOP TRAVERSAL WAS FORWARD-EDGE-ONLY. graph_n_hop_search() and
+   find_n_hop_paths() only followed outgoing edges - confirmed via
+   direct NetworkX testing that .edges(nbunch=[node]) never returns
+   in-edges, so the `other = v if u == node else u` branch handling
+   the reverse case was dead code. This silently missed real
+   reachability for relation types ARF stores inconsistently in
+   direction (README, Week 2: companion_of and other symmetric types
+   appear both directions for the same pair). Fixed by also querying
+   .in_edges(), but SCOPED to only the 7 confirmed-inconsistent
+   symmetric relation types (SYMMETRIC_RELATIONS below), not all 48.
+   Measured before scoping: unscoped direction-agnostic traversal
+   recovers real reachability (3.5-4x growth at 2-3 hops on real
+   data) but skews recovered nodes toward high degree; scoping to
+   symmetric-only relations cuts absolute recovered volume (~31% less
+   at 2 hops) but does NOT reduce the degree skew - high-degree nodes
+   in this corpus are protagonists connected via many relation types
+   at once, not an artifact of which relation type reaches them. Skew
+   is MEASURED, not shown harmful - those are separate claims. See the
+   pre-registered revisit trigger below.
+
+3. evaluate_nhop_graph() (REMOVED, replaced by
+   validate_graph_reachability()) was a self-consistency check
+   wearing a capability-benchmark's clothes: once both question
+   generation (find_n_hop_paths) and evaluation shared identical
+   traversal logic, near-100% "accuracy" was close to guaranteed by
+   construction, not evidence anything improved. Kept as a sanity
+   check instead - independently verified via a graph deliberately
+   mirrored to match our traversal's exact direction semantics, then
+   checked with networkx's own (separately-implemented)
+   shortest_path_length, not our own BFS compared against itself.
+   This catches real implementation bugs in our hand-rolled BFS; it
+   does not, and cannot, make "graph traversal finds paths that exist
+   in the graph" an interesting capability claim - it was never one.
+   evaluate_nhop_baseline() (vector-only) remains the genuinely
+   meaningful, non-tautological signal in this suite: pure semantic
+   search really does struggle to chain multi-hop facts, and that's
+   worth tracking.
+
+PRE-REGISTERED REVISIT TRIGGER for the symmetric-only scoping
+decision (point 2): revisit only if evaluate_direction_aware()
+accuracy is meaningfully worse for questions whose correct_answer is
+a low-degree node vs. a hub node. Elevated protagonist-centrality in
+a narrative graph may be structurally correct, not a defect - this
+must be checked against actual retrieval accuracy, not against
+degree-distribution statistics alone. Any future degree-cap
+mitigation must be validated the same way, not against its own
+distribution output.
+
+HISTORICAL NUMBERS ARE VOID: the 72%/26% multi-hop figures from v1
+are not comparable to any rerun of this module - both the traversal
+and the question-generation logic changed.
+
+
 """
 
 import random
@@ -19,13 +81,11 @@ from dataclasses import dataclass
 import networkx as nx
 import pandas as pd
 
-from embedding.vector_store import query_relations
 from embedding.relation_text import relation_to_question
+from embedding.vector_store import query_relations
 from graph.canonicalization import normalize_entity_name
-# from graph.relation_ontology import is_canonical_relation
 from retrieval.hybrid_search import hybrid_search
-
-
+from graph.traversal import find_n_hop_paths, graph_n_hop_search, _direction_aware_undirected_view
 # ---------------------------------------------------------------------
 # Single-hop, direction-aware benchmark
 # ---------------------------------------------------------------------
@@ -33,7 +93,7 @@ from retrieval.hybrid_search import hybrid_search
 @dataclass
 class BenchmarkQuestion:
     """One auto-generated single-hop evaluation question with a
-    known-correct answer and the source relation type/direction.
+    known-correct answer and the source relation type.
     """
 
     query: str
@@ -42,8 +102,24 @@ class BenchmarkQuestion:
     source_relation: str
 
 
-
 def generate_questions(df: pd.DataFrame, n_samples: int = 200, seed: int = 42) -> list[BenchmarkQuestion]:
+    """Sample relation instances with a verified question template and
+    generate single-hop benchmark questions.
+
+    Only relations with a verified template (see
+    embedding.relation_text.relation_to_question) are eligible -
+    31/48 canonical types. An unverified direction would silently
+    test the wrong thing in a direction-aware benchmark; see module
+    docstring point 1.
+
+    Args:
+        df: Parsed ARF dataframe.
+        n_samples: How many questions to generate.
+        seed: Random seed, for reproducible sampling.
+
+    Returns:
+        A list of BenchmarkQuestions, sampled across multiple books.
+    """
     rng = random.Random(seed)
 
     candidates = []
@@ -68,6 +144,10 @@ def generate_questions(df: pd.DataFrame, n_samples: int = 200, seed: int = 42) -
 def evaluate_direction_aware(collection, model, corpus: dict, questions: list[BenchmarkQuestion], k: int = 5) -> dict:
     """Checks whether the CORRECTLY-DIRECTED fact is found, not just
     whether the right name appears anywhere among candidates.
+
+    Unaffected by the Week 7 traversal changes (single-hop only) -
+    unchanged from the original except for benefiting from
+    generate_questions()'s corrected phrasing.
     """
     baseline_correct = 0
     hybrid_correct = 0
@@ -97,80 +177,11 @@ def evaluate_direction_aware(collection, model, corpus: dict, questions: list[Be
     }
 
 
+
+
 # ---------------------------------------------------------------------
-# Multi-hop benchmark (general, any hop count)
+# N-hop question generation and evaluation
 # ---------------------------------------------------------------------
-
-def find_n_hop_paths(graph: nx.MultiDiGraph, hops: int, max_samples: int = 500) -> list[dict]:
-    """... (docstring as before, plus:)
-
-    Returns:
-        List of dicts: {'start', 'end', 'path', 'relations',
-        'directions'} - 'directions' is "forward"/"reverse" per hop,
-        same order and length as 'relations'. Needed downstream because
-        direction-agnostic traversal means a hop's current node isn't
-        guaranteed to play entity1's role for that relation instance.
-    """
-    paths = []
-
-    def dfs(current, visited_nodes, visited_rels, visited_dirs, depth):
-        if depth == hops:
-            paths.append({
-                "start": visited_nodes[0],
-                "end": current,
-                "path": visited_nodes + [current],
-                "relations": list(visited_rels),
-                "directions": list(visited_dirs),
-            })
-            return
-        if len(paths) >= max_samples:
-            return
-        candidates = (
-            [(v, data["relation"], "forward") for _, v, data in graph.edges(nbunch=[current], data=True)]
-            + [(u, data["relation"], "reverse") for u, _, data in graph.in_edges(nbunch=[current], data=True)]
-        )
-        for other, relation, direction in candidates:
-            if other not in visited_nodes:
-                dfs(other, visited_nodes + [current], visited_rels + [relation], visited_dirs + [direction], depth + 1)
-
-    for node in graph.nodes:
-        if len(paths) >= max_samples:
-            break
-        dfs(node, [], [], [], 0)
-
-    return paths
-
-
-def graph_n_hop_search(graph: nx.MultiDiGraph, entity_a: str, hops: int) -> set[str]:
-    """Return all entities reachable from entity_a within `hops` steps.
-
-    Direction-agnostic: follows edges in either stored direction, not
-    just outgoing. ARF stores symmetric relation types (companion_of,
-    friend_of, enemy_of, rival_of, sibling_of, spouse_of, relative_of)
-    inconsistently in direction (README, Week 2), so a forward-only
-    traversal silently drops real, reachable entities whenever an
-    instance happened to be stored the "other" way. Matches
-    get_relationships_between()'s existing direction-agnostic design
-    for pairwise lookups (temporal/trajectory.py) - this brings n-hop
-    traversal in line with a precedent already established elsewhere
-    in the project, rather than introducing a new philosophy.
-
-    Cumulative across all hop depths up to `hops`, not just the final
-    BFS layer (unchanged from the prior version - a node reachable via
-    a path shorter than `hops` still counts).
-    """
-    frontier = {entity_a}
-    visited = {entity_a}
-    for _ in range(hops):
-        next_frontier = set()
-        for node in frontier:
-            neighbors = {v for _, v, _ in graph.edges(nbunch=[node], data=True)}
-            neighbors |= {u for u, _, _ in graph.in_edges(nbunch=[node], data=True)}
-            next_frontier |= neighbors - visited
-        visited |= next_frontier
-        frontier = next_frontier
-    return visited - {entity_a}
-
 
 @dataclass
 class NHopQuestion:
@@ -181,8 +192,23 @@ class NHopQuestion:
     hops: int
 
 
-
 def _chain_phrase(start: str, relations: list[str], directions: list[str]) -> str | None:
+    """Build a step-by-step, direction-verified question from a chain
+    of relations - not nested possessives ("the enemy of the
+    companion of X"), which reproduces the single-hop direction bug,
+    compounded once per hop.
+
+    Each step reuses relation_to_question() directly - the first hop
+    with the real start entity as subject, every subsequent hop with
+    "that entity" as a placeholder subject for the previous step's
+    (unknown) answer. direction picks which grammatical role the
+    subject plays at that hop (see find_n_hop_paths).
+
+    Returns:
+        A multi-sentence question string, or None if ANY hop's
+        relation lacks a verified template - one unverified hop
+        anywhere invalidates the whole chain's ground truth.
+    """
     steps = []
     subject = start
     for i, (rel, direction) in enumerate(zip(relations, directions)):
@@ -198,10 +224,9 @@ def _chain_phrase(start: str, relations: list[str], directions: list[str]) -> st
 
 
 def generate_nhop_questions(corpus: dict[str, nx.MultiDiGraph], hops: int, n_samples: int = 100, seed: int = 42) -> list[NHopQuestion]:
-    """Generate natural-language n-hop questions with a specific, single
-    correct answer, using real sampled paths and their true relation
-    chain for phrasing (same phrasing style at every hop depth, so
-    accuracy trends across hop counts are fairly comparable).
+    """Generate natural-language n-hop questions with a specific,
+    single correct answer, using real sampled paths and their true
+    relation/direction chain for phrasing.
     """
     rng = random.Random(seed)
     candidates = []
@@ -224,14 +249,15 @@ def generate_nhop_questions(corpus: dict[str, nx.MultiDiGraph], hops: int, n_sam
             correct_answer=path_info["end"],
             hops=hops,
         ))
-
     return questions
 
 
 def evaluate_nhop_baseline(collection, model, questions: list[NHopQuestion], k: int = 10) -> float:
     """Vector-only: one query per question, checks if the correct
     answer entity appears anywhere in top-k results. No mechanism to
-    chain facts - included as the honest baseline this can't do well.
+    chain facts - this remains the genuinely meaningful,
+    non-tautological signal in this benchmark suite (see module
+    docstring point 3).
     """
     correct = 0
     for q in questions:
@@ -244,16 +270,43 @@ def evaluate_nhop_baseline(collection, model, questions: list[NHopQuestion], k: 
     return correct / len(questions)
 
 
-def evaluate_nhop_graph(corpus: dict, questions: list[NHopQuestion]) -> float:
-    """Graph traversal: does the correct answer fall within the true
-    n-hop reachable set from the start entity?
+def validate_graph_reachability(corpus: dict, questions: list[NHopQuestion]) -> dict:
+    """Sanity check, NOT a capability benchmark (see module docstring
+    point 3 for why evaluate_nhop_graph() was replaced with this).
+
+    Cross-validates our hand-rolled graph_n_hop_search() against
+    networkx's own, independently-implemented shortest_path_length,
+    run on a graph explicitly mirrored to match our traversal's exact
+    direction semantics. This catches real bugs in our own BFS; it
+    does not make "graph finds paths that exist in the graph" an
+    interesting capability claim on its own.
+
+    Returns:
+        Dict with n_questions, agreement_rate (our check vs. nx's
+        independent check - should be ~1.0; a mismatch is a real bug
+        in our traversal, not a capability gap) and reachable_rate
+        (fraction independently confirmed reachable - expected near
+        1.0 by construction, NOT a metric to report as "graph
+        accuracy" going forward).
     """
-    correct = 0
+    agreement, reachable, n = 0, 0, len(questions)
     for q in questions:
         graph = corpus.get(q.book_id)
         if graph is None:
+            n -= 1
             continue
-        reached = graph_n_hop_search(graph, q.start_entity, q.hops)
-        if q.correct_answer in reached:
-            correct += 1
-    return correct / len(questions)
+        our_reachable = q.correct_answer in graph_n_hop_search(graph, q.start_entity, q.hops)
+        mirrored = _direction_aware_undirected_view(graph)
+        try:
+            nx_reachable = nx.shortest_path_length(mirrored, q.start_entity, q.correct_answer) <= q.hops
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            nx_reachable = False
+        if our_reachable == nx_reachable:
+            agreement += 1
+        if nx_reachable:
+            reachable += 1
+    return {
+        "n_questions": n,
+        "agreement_with_independent_check": agreement / n if n else 0.0,
+        "reachable_rate": reachable / n if n else 0.0,
+    }

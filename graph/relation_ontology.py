@@ -33,3 +33,18 @@ def is_canonical_relation(relation: str) -> bool:
         True if the relation is one of the 48 canonical ontology types.
     """
     return relation in CANONICAL_RELATION_TYPES
+
+# graph/relation_ontology.py — add alongside is_canonical_relation()
+
+SYMMETRIC_RELATIONS: set[str] = {
+    "companion_of", "friend_of", "enemy_of", "rival_of",
+    "sibling_of", "spouse_of", "relative_of",
+}
+"""Relation types confirmed (README, Week 2) to be stored
+inconsistently in direction for the same real-world pair — e.g.
+companion_of appears both directions across different instances.
+Used by graph-traversal code to decide which relation types are safe
+to treat as bidirectional for reachability purposes; NOT a claim that
+these relations are semantically direction-free in every instance,
+only that ARF's own extraction doesn't reliably preserve a consistent
+direction for them."""
