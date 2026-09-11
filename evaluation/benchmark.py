@@ -102,57 +102,71 @@ def evaluate_direction_aware(collection, model, corpus: dict, questions: list[Be
 # ---------------------------------------------------------------------
 
 def find_n_hop_paths(graph: nx.MultiDiGraph, hops: int, max_samples: int = 500) -> list[dict]:
-    """Find real n-hop paths in a graph via DFS, including the relation
-    type traversed at each hop (used for natural-language question
-    phrasing - see generate_nhop_questions).
+    """... (docstring as before, plus:)
 
     Returns:
-        List of dicts: {'start', 'end', 'path': [nodes], 'relations':
-        [relation types, in traversal order]}. All nodes in a path are
-        distinct (no revisits).
+        List of dicts: {'start', 'end', 'path', 'relations',
+        'directions'} - 'directions' is "forward"/"reverse" per hop,
+        same order and length as 'relations'. Needed downstream because
+        direction-agnostic traversal means a hop's current node isn't
+        guaranteed to play entity1's role for that relation instance.
     """
     paths = []
 
-    def dfs(current: str, visited_nodes: list[str], visited_rels: list[str], depth: int):
+    def dfs(current, visited_nodes, visited_rels, visited_dirs, depth):
         if depth == hops:
             paths.append({
                 "start": visited_nodes[0],
                 "end": current,
                 "path": visited_nodes + [current],
                 "relations": list(visited_rels),
+                "directions": list(visited_dirs),
             })
             return
         if len(paths) >= max_samples:
             return
-        for u, v, data in graph.edges(nbunch=[current], data=True):
-            other = v if u == current else u
+        candidates = (
+            [(v, data["relation"], "forward") for _, v, data in graph.edges(nbunch=[current], data=True)]
+            + [(u, data["relation"], "reverse") for u, _, data in graph.in_edges(nbunch=[current], data=True)]
+        )
+        for other, relation, direction in candidates:
             if other not in visited_nodes:
-                dfs(other, visited_nodes + [current], visited_rels + [data["relation"]], depth + 1)
+                dfs(other, visited_nodes + [current], visited_rels + [relation], visited_dirs + [direction], depth + 1)
 
     for node in graph.nodes:
         if len(paths) >= max_samples:
             break
-        dfs(node, [], [], 0)
+        dfs(node, [], [], [], 0)
 
     return paths
 
 
 def graph_n_hop_search(graph: nx.MultiDiGraph, entity_a: str, hops: int) -> set[str]:
-    """Return all entities reachable from entity_a within `hops` steps
-    (cumulative across all hop depths up to `hops`, not just the final
-    BFS layer - a node reachable via a path shorter than `hops` still
-    counts, since a specific sampled DFS path's length can differ from
-    the true shortest-path distance to the same node).
+    """Return all entities reachable from entity_a within `hops` steps.
+
+    Direction-agnostic: follows edges in either stored direction, not
+    just outgoing. ARF stores symmetric relation types (companion_of,
+    friend_of, enemy_of, rival_of, sibling_of, spouse_of, relative_of)
+    inconsistently in direction (README, Week 2), so a forward-only
+    traversal silently drops real, reachable entities whenever an
+    instance happened to be stored the "other" way. Matches
+    get_relationships_between()'s existing direction-agnostic design
+    for pairwise lookups (temporal/trajectory.py) - this brings n-hop
+    traversal in line with a precedent already established elsewhere
+    in the project, rather than introducing a new philosophy.
+
+    Cumulative across all hop depths up to `hops`, not just the final
+    BFS layer (unchanged from the prior version - a node reachable via
+    a path shorter than `hops` still counts).
     """
     frontier = {entity_a}
     visited = {entity_a}
     for _ in range(hops):
         next_frontier = set()
         for node in frontier:
-            for u, v, _ in graph.edges(nbunch=[node], data=True):
-                other = v if u == node else u
-                if other not in visited:
-                    next_frontier.add(other)
+            neighbors = {v for _, v, _ in graph.edges(nbunch=[node], data=True)}
+            neighbors |= {u for u, _, _ in graph.in_edges(nbunch=[node], data=True)}
+            next_frontier |= neighbors - visited
         visited |= next_frontier
         frontier = next_frontier
     return visited - {entity_a}
@@ -168,28 +182,11 @@ class NHopQuestion:
 
 
 
-def _chain_phrase(start: str, relations: list[str]) -> str | None:
-    """Build a step-by-step, direction-verified question from a chain
-    of relations - NOT nested possessives ("the enemy of the companion
-    of X"), which reproduces the single-hop direction bug, compounded
-    once per hop (confirmed on real corpus data - see Week 7 findings).
-
-    Each step reuses relation_to_question() directly - the first hop
-    with the real start entity as subject, every subsequent hop with
-    "that entity" as a placeholder subject referring to the previous
-    step's (unknown) answer. Correctness by construction: every
-    individual step is independently verified, nothing new is derived
-    by chaining.
-
-    Returns:
-        A multi-sentence question string, or None if ANY relation in
-        the chain lacks a verified template - one unverified hop
-        anywhere invalidates the whole chain's ground truth.
-    """
+def _chain_phrase(start: str, relations: list[str], directions: list[str]) -> str | None:
     steps = []
     subject = start
-    for i, rel in enumerate(relations):
-        question = relation_to_question(subject, rel)
+    for i, (rel, direction) in enumerate(zip(relations, directions)):
+        question = relation_to_question(subject, rel, direction=direction)
         if question is None:
             return None
         if i == 0:
@@ -217,7 +214,7 @@ def generate_nhop_questions(corpus: dict[str, nx.MultiDiGraph], hops: int, n_sam
 
     questions = []
     for book_id, path_info in sampled:
-        phrase = _chain_phrase(path_info["start"], path_info["relations"])
+        phrase = _chain_phrase(path_info["start"], path_info["relations"], path_info["directions"])
         if phrase is None:
             continue
         questions.append(NHopQuestion(

@@ -104,25 +104,33 @@ def _statement_to_question(template: str) -> str | None:
     return f"Who {copula} {{entity1}} {' '.join(middle)}"
 
 
-def relation_to_question(entity1: str, relation: str) -> str | None:
-    """Build a direction-correct question asking for entity2, given
-    entity1 and the relation type.
+def relation_to_question(entity: str, relation: str, direction: str = "forward") -> str | None:
+    """Build a direction-correct question about a relation, given one
+    known entity and which role it plays.
 
-    Deliberately only supports relation types with a verified
-    MANUAL_TEMPLATES entry (or an explicit override) - unlike
-    relation_to_sentence()'s generic fallback, an unverified direction
-    here would silently test the wrong thing in a direction-aware
-    benchmark. Returns None for anything without a verified template;
-    callers should skip such relations rather than guess.
+    Args:
+        entity: The known entity.
+        relation: The relation type string.
+        direction: "forward" - entity plays entity1's role, ask for
+            entity2 (the original single-hop case). "reverse" -
+            entity plays entity2's role, ask for entity1 (needed once
+            n-hop traversal follows an edge backward).
+
+    Returns:
+        A question string ending in "?", or None if this relation type
+        has no verified template.
     """
-    override = _QUESTION_OVERRIDES.get(relation)
-    if override is not None:
-        return override.format(entity1=entity1) + "?"
-
     template = MANUAL_TEMPLATES.get(relation)
     if template is None:
         return None
+
+    if direction == "reverse":
+        return template.format(entity1="Who", entity2=entity) + "?"
+
+    override = _QUESTION_OVERRIDES.get(relation)
+    if override is not None:
+        return override.format(entity1=entity) + "?"
     stem = _statement_to_question(template)
     if stem is None:
         return None
-    return stem.format(entity1=entity1) + "?"
+    return stem.format(entity1=entity) + "?"

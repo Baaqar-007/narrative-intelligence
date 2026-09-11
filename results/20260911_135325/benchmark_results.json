@@ -1,0 +1,31 @@
+{
+  "caveats": [
+    "hop_count_trend previously used a generic, hop-count-invariant query template; this was replaced with natural chained phrasing (matching the style of single_hop_direction_vs_k) after finding it produced noisy, non-monotonic results. Current numbers use consistent natural phrasing at every hop depth."
+  ],
+  "single_hop_direction_vs_k": {
+    "1": 0.315,
+    "3": 0.485,
+    "5": 0.585,
+    "7": 0.645,
+    "10": 0.695,
+    "15": 0.755,
+    "20": 0.795
+  },
+  "hop_count_trend": {
+    "hops": [
+      1,
+      2,
+      3
+    ],
+    "baseline": [
+      0.32967032967032966,
+      0.20652173913043478,
+      0.10126582278481013
+    ],
+    "graph": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  }
+}

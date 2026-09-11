@@ -1,7 +1,7 @@
 # NIE v2 — Phase 1 Research Summary (Weeks 1–5)
 
 > Compiled reference covering GraphRAG-adjacent literature and the
-> entity-resolution research thread. This document is the
+> entity-resolution research thread ; this document is the
 > synthesized, cross-referenced version — what each source means for
 > *this* project's decisions, not a restatement of each paper.
 >
@@ -10,6 +10,7 @@
 > pending sign-off.
 
 ---
+
 
 ## Week 1 — Graph RAG landscape ✅
 
@@ -147,7 +148,8 @@ Resolution at Book Scale*, arXiv:2507.12075, July 2025 (19 pages, read
 in full).
 
 **Correction**: an earlier project note understated the finding as
-"specialized resources solve it." Actual numbers: off-the-shelf models score
+"specialized resources solve it." Actual numbers: off-the-shelf models
+score
 40–51 CoNLL-F1 at book scale (vs. ~80+ on standard benchmarks); even
 the best specialized systems, fine-tuned on book-scale data, only
 reach 61–67 — the gap never fully closes. Genuinely open problem, by
@@ -170,7 +172,8 @@ paper's PER-only annotation scope independently matches v1's own
 
 **Source**: Bhattacharya, collective relational entity resolution.
 Not independently read for this summary; analyzed from an internally
-maintained summary of the source. Lower confidence than the other two
+maintained summary of the source, since the PDF is not currently in
+the project's reference set. Lower confidence than the other two
 facets accordingly.
 
 **What it describes**: disambiguating individual identity (e.g., is
@@ -459,6 +462,89 @@ Principle 2, not an extension of the one already granted.
 
 ---
 
+## Week 7 — Multi-hop traversal + query-direction detection 📋
+
+**Bug found and fixed first, before any traversal changes**:
+`evaluation/benchmark.py`'s `generate_questions()`/`_chain_phrase()`
+derived question phrasing from raw relation strings independently of
+`embedding/relation_text.py`'s already-verified `MANUAL_TEMPLATES` —
+two sources of truth for the same fact, and only one was correct.
+Confirmed on real output: `child_of`, `protector_of`, `leader_of` all
+produced questions asking the opposite of their own ground truth (e.g.
+"Who is child of Will?" naturally asks who Will's child is; ground
+truth was Will's *parent*). Fixed via `relation_to_question()` —
+mechanically wh-fronts the verified statement templates rather than
+re-deriving direction from the relation string — and
+`relation_to_question(..., direction="reverse")` for the chain case
+below. Question generation now scoped to the 31/48 relation types with
+a verified template (previously all 48 canonical types); unverified
+relations return `None` and are skipped rather than guessed at.
+
+**`graph_n_hop_search()`/`find_n_hop_paths()` were forward-only**
+(only followed outgoing edges) — confirmed via direct NetworkX testing
+that `.edges(nbunch=[node])` never returns in-edges. Real consequence:
+silently misses reachability for relation types README already
+confirmed are stored inconsistently in direction (`companion_of` and
+similar symmetric types). Demonstrated on a constructed graph before
+fixing (same "prove it before assuming" discipline as v1's own
+`MultiDiGraph`/GML decisions).
+
+**Direction-agnostic traversal was tried broad (all 48 relation types)
+first, then scoped down** — measured, not assumed, at each step:
+- Broad version: 3.5–4x reachable-set growth at 2–3 hops (real, large
+  effect — confirmed via degree-distribution and reachable-set-size
+  diagnostics after the historical 72%/26% benchmark comparison turned
+  out to be the wrong instrument to see it with, see below).
+- Newly-recovered nodes skew toward high degree (median 2 vs. corpus
+  median 1; mean 16.8 vs. corpus mean 9.7) — a real compositional
+  shift, confirmed via direct measurement.
+- Scoping reverse-traversal to only the 7 confirmed-inconsistent
+  symmetric relation types (`companion_of`, `friend_of`, `enemy_of`,
+  `rival_of`, `sibling_of`, `spouse_of`, `relative_of`) reduces
+  absolute recovered-node volume (~31% less at 2 hops) but does **not**
+  reduce the skew ratio — median/mean recovered degree essentially
+  unchanged from the broad version. High-degree nodes in this corpus
+  are protagonists connected via many relation types simultaneously;
+  restricting which relation type triggers reverse-traversal doesn't
+  change who's structurally most reachable.
+
+**Decision**: ship the scoped (symmetric-relations-only) version —
+matches what README's finding actually evidenced, not a broader claim
+the data never made. Hub-skew logged as a real, measured property,
+explicitly **not** logged as a confirmed problem — degree-distribution
+skew and retrieval-quality harm are separate claims; only the first
+was measured, and elevated protagonist-centrality in a narrative graph
+may be structurally correct rather than a defect (a query about a
+protagonist's companion *should* surface protagonist-adjacent, high-
+degree territory). Consistent with, not a reversal of, Week 2's
+original CatRAG-derived call to defer precision concerns until
+measured — this is a second correct application of that same
+discipline, not an exception to it.
+
+**Pre-registered revisit trigger, defined now rather than left vague**:
+compare direction-aware benchmark accuracy for questions whose correct
+answer is a low-degree node vs. a hub node. A meaningful accuracy gap
+disfavoring low-degree answers is the trigger to revisit, not "if it
+seems worse." If a degree cap or similar mitigation is ever built in
+response, it must be validated against this same accuracy split, not
+against its own degree-distribution output — skew reduction alone
+would not be evidence the fix helped, since skew was never the
+measured harm.
+
+**Methodological note, worth keeping**: the historical 72%/26%
+multi-hop benchmark numbers are void, not comparable to any future
+rerun — `evaluate_nhop_graph()` turned out to be a self-consistency
+check once both question generation and traversal share the same
+direction-agnostic logic (does traversal find paths it just generated
+using itself), not a real capability measurement. The
+reachable-set-size and degree-distribution diagnostics above were
+necessary specifically because the existing benchmark metric couldn't
+see this fix's effect at all — a second instance of the same lesson as
+Benchmark 1 in v1 (naive metrics can fail to detect a real
+improvement, not just fail to detect a real problem).
+
+---
+
 ## Cross-cutting patterns found across independent sources
 
 These weren't designed to compare — they surfaced from reading
@@ -511,3 +597,15 @@ recording:
 6. 🔲 **Still open** — re-scope the 1,119 multi-typed-string count
    per-book (currently global) before it's used to argue anything
    beyond the one confirmed `Tristan and Isolde` example.
+7. ✅ **Resolved** — `generate_questions()`/`_chain_phrase()` direction
+   bug fixed (derive questions from `relation_text.py`'s verified
+   templates, not ad hoc phrasing); n-hop traversal made
+   direction-agnostic, scoped to the 7 confirmed symmetric relation
+   types only, not all 48. Historical 72%/26% benchmark numbers void.
+8. 🔲 **Still open, trigger pre-registered** — hub-skew in recovered
+   n-hop nodes is measured (confirmed real) but not shown harmful to
+   retrieval quality (separate, unproven claim). Revisit only if
+   direction-aware benchmark accuracy is meaningfully worse for
+   low-degree-answer questions vs. hub-answer questions. Any future
+   degree-cap mitigation must be validated against that same accuracy
+   split, not against its own degree-distribution output.
