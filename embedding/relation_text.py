@@ -134,3 +134,23 @@ def relation_to_question(entity: str, relation: str, direction: str = "forward")
     if stem is None:
         return None
     return stem.format(entity1=entity) + "?"
+
+def get_anchor_phrase(relation: str) -> str | None:
+    """Extract the fixed predicate phrase between entity1 and entity2
+    for a templated relation - e.g. "a protector of" for protector_of.
+
+    Single source of truth for this extraction - reused by
+    retrieval.direction_detection rather than re-parsing
+    MANUAL_TEMPLATES a second time elsewhere (see this week's original
+    bug: two independent implementations of the same direction fact
+    drifting apart).
+
+    Returns None if this relation has no verified template.
+    """
+    template = MANUAL_TEMPLATES.get(relation)
+    if template is None:
+        return None
+    tokens = template.split()
+    if tokens[0] != "{entity1}" or tokens[-1] != "{entity2}":
+        return None
+    return " ".join(tokens[2:-1])
