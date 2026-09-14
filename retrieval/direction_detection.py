@@ -11,6 +11,12 @@ VERB_FORM_OVERRIDES: dict[str, str] = {
     "leader_of": "lead",
 }
 
+MIN_ANCHOR_LENGTH = 5
+"""Anchors shorter than this are too generic to trust as a position
+signal - found via testing, not assumed: travel_to's anchor ("to", 2
+chars) matched inside unrelated queries. Every other template's anchor
+is 7+ characters; 5 sits safely in the gap between them."""
+
 
 def detect_query_direction(query: str, entity: str, relation: str) -> str | None:
     """Determine whether `query` asks about `entity` as entity1 or
@@ -44,7 +50,7 @@ def detect_query_direction(query: str, entity: str, relation: str) -> str | None
         return None
 
     anchor = get_anchor_phrase(relation)
-    if anchor is not None:
+    if anchor is not None and len(anchor) >= MIN_ANCHOR_LENGTH:
         anchor_idx = q_lower.find(anchor.lower())
         if anchor_idx != -1:
             return "forward" if entity_idx < anchor_idx else "reverse"
