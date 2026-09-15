@@ -1,22 +1,3 @@
-"""Graph traversal algorithms, shared by evaluation/benchmark.py
-(benchmark question generation) and retrieval/hybrid_search.py (live
-multi-hop enrichment).
-
-Extracted from evaluation/benchmark.py during Week 7's live wiring -
-retrieval code importing from evaluation/ would have been a backward
-dependency; this module is the shared base both import from instead.
-
-Direction-agnostic traversal (following edges in either stored
-direction) is scoped to SYMMETRIC_RELATIONS only - relation types
-README confirmed are stored inconsistently in direction (e.g.
-companion_of appears both directions for the same real pair).
-Unscoped (all-relation-type) direction-agnostic traversal was tried
-first and found to recover real reachability but skew heavily toward
-high-degree "hub" nodes without the scoping actually reducing that
-skew - see docs/ Week 7 findings for the full measurement. Scoping
-here matches what the evidence actually supports.
-"""
-
 import networkx as nx
 
 from graph.relation_ontology import SYMMETRIC_RELATIONS
@@ -121,8 +102,12 @@ def find_paths_up_to_hops(
     behavior is wrong for this use case specifically.
 
     Returns:
-        Same shape as find_n_hop_paths()'s entries, minus 'path'
-        (start/end/relations/directions only).
+        Same shape as find_n_hop_paths()'s entries - including 'path'
+        (all intermediate entity names). Originally omitted here as
+        unnecessary for reachability checks; restored once
+        retrieval.answer_generation needed the intermediate entities
+        to render a coherent, verifiable chain sentence rather than
+        just a start/end pair.
     """
     paths = []
 
@@ -131,6 +116,7 @@ def find_paths_up_to_hops(
             paths.append({
                 "start": visited_nodes[0],
                 "end": current,
+                "path": visited_nodes + [current],
                 "relations": list(visited_rels),
                 "directions": list(visited_dirs),
             })

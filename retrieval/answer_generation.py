@@ -1,17 +1,8 @@
-"""Generates a natural-language answer from hybrid retrieval results.
-
-This is the final, previously-unbuilt step of the pipeline
-(Hybrid Retrieval -> LLM -> Answer). The LLM's job is strictly limited
-to phrasing - it is given only the facts hybrid_search() already
-verified against the graph, and instructed not to add anything beyond
-them. This preserves the project's core principle that the LLM never
-invents graph structure (see README, Design Principles).
-"""
-
 import os
 
 from groq import Groq
 
+from embedding.relation_text import relation_to_sentence
 from retrieval.hybrid_search import EnrichedHit
 
 MODEL = "openai/gpt-oss-20b"
@@ -29,19 +20,67 @@ def _get_client() -> Groq:
     return _client
 
 
-def _facts_to_text(hits: list[EnrichedHit]) -> str:
-    """Flattens enriched hits into a plain fact list for the prompt."""
-    lines = []
-    seen = set()
+def _fact_line(r: dict) -> str:
+    """Render one single-hop fact, with an explicit note when the
+    query's detected direction doesn't match this fact's stored
+    direction - the LLM is told this directly rather than left to
+    infer it, consistent with computing signals rather than having
+    the model guess."""
+    readable_relation = r["relation"].replace("_", " ")
+    line = f"- {r['entity1']} {readable_relation} {r['entity2']} (source: chunk {r['chunk_id']})"
+    if r.get("query_direction_match") is False:
+        line += (" [Note: this fact may describe the relationship in the "
+                  "OPPOSITE direction from how the question is phrased - "
+                  "check carefully before treating it as the answer.]")
+    return line
+
+
+def _chain_line(chain: dict) -> str:
+    """Render a multi-hop chain as a sequence of natural-language
+    sentences, one per hop - reusing relation_to_sentence() rather
+    than inventing new phrasing a third time this week (single source
+    of truth for direction-correct sentence generation)."""
+    sentences = []
+    path = chain["path"]
+    for i, (relation, direction) in enumerate(zip(chain["relations"], chain["directions"])):
+        a, b = path[i], path[i + 1]
+        entity1, entity2 = (a, b) if direction == "forward" else (b, a)
+        sentences.append(relation_to_sentence(entity1, entity2, relation))
+    return "- " + ". ".join(sentences) + "."
+
+
+def _facts_to_text(hits: list[EnrichedHit]) -> tuple[str, str]:
+    """Flattens enriched hits into separate single-hop and chain fact
+    lists for the prompt - kept separate because the model needs
+    different instructions for each (see generate_answer's prompt).
+
+    Returns:
+        (single_hop_facts_text, chain_facts_text) - either may be the
+        placeholder "(none)" if that category is empty.
+    """
+    fact_lines = []
+    seen_facts = set()
+    chain_lines = []
+    seen_chains = set()
+
     for hit in hits:
         for r in hit.all_relationships:
             key = (r["entity1"], r["relation"], r["entity2"], r["chunk_id"])
-            if key in seen:
+            if key in seen_facts:
                 continue
-            seen.add(key)
-            readable_relation = r["relation"].replace("_", " ")
-            lines.append(f"- {r['entity1']} {readable_relation} {r['entity2']} (source: chunk {r['chunk_id']})")
-    return "\n".join(lines) if lines else "(no relevant facts found)"
+            seen_facts.add(key)
+            fact_lines.append(_fact_line(r))
+
+        for chain in hit.chains:
+            key = (tuple(chain["path"]), tuple(chain["relations"]))
+            if key in seen_chains:
+                continue
+            seen_chains.add(key)
+            chain_lines.append(_chain_line(chain))
+
+    facts_text = "\n".join(fact_lines) if fact_lines else "(none)"
+    chains_text = "\n".join(chain_lines) if chain_lines else "(none)"
+    return facts_text, chains_text
 
 
 def generate_answer(question: str, hits: list[EnrichedHit]) -> str:
@@ -53,43 +92,51 @@ def generate_answer(question: str, hits: list[EnrichedHit]) -> str:
 
     Returns:
         A natural-language answer, or an honest "not found" message if
-        no relevant facts were retrieved - the model is instructed not
-        to guess beyond the provided facts.
+        no relevant facts were retrieved.
     """
-    facts = _facts_to_text(hits)
+    facts_text, chains_text = _facts_to_text(hits)
 
     prompt = (
-    "You answer questions about a novel using ONLY the facts listed below. "
-    "Each fact is a separate, isolated statement - facts are NOT connected "
-    "to each other unless a single fact explicitly states the connection. "
-    "Do not chain or combine two separate facts to infer something that "
-    "isn't explicitly stated as one fact.\n\n"
-    "Example of what NOT to do: if one fact says 'A is friend of B' and a "
-    "separate fact says 'C is protector of D', do not conclude 'C is "
-    "protector of A's friend' - B and D may not even be the same person "
-    "unless a fact says so explicitly.\n\n"
-    "If the exact fact (or chain) the question asks for is not explicitly "
-    "present, say plainly that it cannot be determined from the retrieved "
-    "facts, rather than guessing.\n\n"
-    f"Facts:\n{facts}\n\n"
-    f"Question: {question}\n\n"
-    "Answer in 1-3 sentences:"
-)
+        "You answer questions about a novel using ONLY the facts and "
+        "chains listed below.\n\n"
+        "SINGLE-HOP FACTS are separate, isolated statements - they are "
+        "NOT connected to each other unless a single fact explicitly "
+        "states the connection. Do not chain or combine two separate "
+        "single-hop facts to infer something not explicitly stated as "
+        "one fact. Example of what NOT to do: if one fact says 'A is "
+        "friend of B' and a separate fact says 'C is protector of D', "
+        "do not conclude 'C is protector of A's friend' - B and D may "
+        "not even be the same person unless a fact says so explicitly.\n\n"
+        "CHAINS are different: each chain below is a single, pre-verified "
+        "multi-hop path already confirmed against the story's graph, "
+        "given to you as one connected unit - not something you are "
+        "combining yourself. You may use a chain as complete evidence "
+        "for a multi-step question, but do not extend a chain further "
+        "or combine it with anything beyond what it explicitly states.\n\n"
+        "Facts flagged with a direction note may describe the relationship "
+        "in the opposite direction from how the question is phrased - "
+        "read the note and the question carefully before using such a "
+        "fact as the answer.\n\n"
+        "If the exact fact or chain the question asks for is not "
+        "explicitly present, say plainly that it cannot be determined "
+        "from the retrieved facts, rather than guessing.\n\n"
+        f"Single-hop facts:\n{facts_text}\n\n"
+        f"Chains:\n{chains_text}\n\n"
+        f"Question: {question}\n\n"
+        "Answer in 1-3 sentences:"
+    )
 
     client = _get_client()
     response = client.chat.completions.create(
-    model=MODEL,
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.2,
-    max_tokens=500,
-    reasoning_effort="low",
-)
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.2,
+        max_tokens=500,
+        reasoning_effort="low",
+    )
 
     answer = response.choices[0].message.content
     if not answer or not answer.strip():
-        # defensive: reasoning-style models can leave content empty under
-        # token pressure - surface this clearly instead of silently
-        # returning a blank string to the user
         raise RuntimeError(f"Model returned empty content. Full response: {response}")
 
     return answer.strip()

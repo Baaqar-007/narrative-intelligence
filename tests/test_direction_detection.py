@@ -12,6 +12,8 @@ import pytest
 from retrieval.direction_detection import (
     VERB_FORM_OVERRIDES,
     detect_query_direction,
+    direction_match,
+    entity_to_expand_from,
 )
 
 
@@ -99,3 +101,74 @@ class TestSafeFailure:
             "Who wants to know where Bob went?", "Bob", "travel_to",
         )
         assert result is None
+
+    def test_short_entity_substring_of_unrelated_name_does_not_false_positive(self):
+        """Regression test for a second real bug: 'An' (a short entity
+        name) matched as a substring of the unrelated name 'Ann' via
+        plain .find(), producing a confidently wrong direction for a
+        sentence actually about a different person. Fixed via
+        word-boundary regex matching."""
+        result = detect_query_direction(
+            "Ann is a leader of the settlers.", "An", "leader_of",
+        )
+        assert result is None
+
+
+class TestArticleVariants:
+    """Regression coverage for a real gap found integrating this into
+    hybrid_search: 15/31 templates use 'a'/'an' as their anchor's
+    article, but 'the X of Y' is equally natural English and was
+    being missed entirely."""
+
+    def test_the_article_matches_where_a_article_template_exists(self):
+        result = detect_query_direction(
+            "who protects the friend of the knight?", "knight", "friend_of",
+        )
+        assert result is not None  # was None before the fix
+
+    def test_a_article_still_works_as_before(self):
+        result = detect_query_direction(
+            "Who is a friend of Taug?", "Taug", "friend_of",
+        )
+        assert result == "reverse"
+
+
+class TestDirectionMatch:
+    def test_matching_direction_returns_true(self):
+        fact = {"entity1": "Taug", "entity2": "Teeka", "relation": "protector_of"}
+        assert direction_match("Who is Taug a protector of?", fact) is True
+
+    def test_mismatched_direction_returns_false(self):
+        """The exact scenario that motivated this whole feature: a
+        query phrased in the opposite direction from how the fact
+        happens to be stored."""
+        fact = {"entity1": "knight", "entity2": "squire", "relation": "friend_of"}
+        assert direction_match("who protects the friend of the knight?", fact) is False
+
+    def test_undetermined_returns_none_not_a_guess(self):
+        fact = {"entity1": "X", "entity2": "Y", "relation": "believes_in"}
+        assert direction_match("Who does X believe in?", fact) is None
+
+
+class TestEntityToExpandFrom:
+    """Regression coverage for the previously-hardcoded 'always
+    entity2' default in hybrid_search.py - these specifically check
+    that REAL logic engaged, not that the fallback happened to produce
+    the same answer (a real gap this exact test class exists to catch,
+    found while integrating this into hybrid_search)."""
+
+    def test_forward_query_expands_from_entity2(self):
+        result = entity_to_expand_from("Who is Taug a protector of?", "Taug", "Teeka", "protector_of")
+        assert result == "Teeka"
+
+    def test_reverse_query_expands_from_entity1_not_the_old_default(self):
+        """The actual behavior change this feature exists to make -
+        must NOT just fall back to entity2."""
+        result = entity_to_expand_from("Who protects Taug?", "Taug", "Teeka", "protector_of")
+        assert result == "Taug"
+
+    def test_undetermined_falls_back_to_entity2(self):
+        """Preserves the original pre-Week-7 default when direction
+        genuinely can't be determined - not a regression."""
+        result = entity_to_expand_from("What is the weather?", "Taug", "Teeka", "protector_of")
+        assert result == "Teeka"

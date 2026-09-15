@@ -123,14 +123,20 @@ class TestHopDepthDefaultIsANoOp:
 
 class TestHopDepthEnabled:
     def test_finds_the_motivating_two_hop_fact(self, single_hit_collection, knight_graph):
-        """The actual feature this exists for: entity2 (squire) has a
-        further fact (protector_of lord) the single-hop pair alone
-        can't surface."""
+        """The actual feature this exists for: further facts beyond
+        the single-hop pair alone can't surface. Also checks the
+        direction_match annotation is present and correctly flags this
+        specific fact as NOT matching the query's literal direction -
+        the query implies 'knight' should be the friended one, but the
+        fact stores knight as the friender. Chains still find the
+        right answer regardless, by exploring the graph broadly rather
+        than being constrained by this one fact's direction."""
         corpus = {"1": knight_graph}
         hits = hybrid_search(single_hit_collection, "who protects the friend of the knight?",
                               FakeModel(), corpus, n_results=1, hop_depth=2)
         ends = {c["end"] for c in hits[0].chains}
         assert "lord" in ends
+        assert hits[0].all_relationships[0]["query_direction_match"] is False
 
     def test_redundant_path_back_to_entity1_is_filtered(self, single_hit_collection):
         """squire always has a path back to knight (that's why they were
