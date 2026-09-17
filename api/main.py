@@ -12,11 +12,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from api.schemas import BookInfo, HealthResponse, QueryRequest, QueryResponse, SourceFact
+from api.schemas import BookInfo, ChainFact, HealthResponse, QueryRequest, QueryResponse, SourceFact
 from embedding.embed_relations import load_embedding_model
 from embedding.vector_store import get_collection
 from graph.corpus import load_corpus
 from retrieval.answer_generation import generate_answer
+from retrieval.direction_detection import estimate_hop_depth
 from retrieval.hybrid_search import hybrid_search
 
 DATA_DIR = Path("data")
@@ -73,16 +74,20 @@ def query(req: QueryRequest):
     if req.book_id not in state["corpus"]:
         raise HTTPException(status_code=404, detail=f"Unknown book_id: {req.book_id}")
 
+    hop_depth = estimate_hop_depth(req.question)
+
     hits = hybrid_search(
         state["collection"], req.question, state["model"], state["corpus"],
-        n_results=5, book_id=req.book_id,
+        n_results=5, book_id=req.book_id, hop_depth=hop_depth,
     )
 
     sources = [
-        SourceFact(entity1=r["entity1"], entity2=r["entity2"], relation=r["relation"], chunk_id=r["chunk_id"])
+        SourceFact(
+            entity1=r["entity1"], entity2=r["entity2"], relation=r["relation"],
+            chunk_id=r["chunk_id"], query_direction_match=r.get("query_direction_match"),
+        )
         for hit in hits for r in hit.all_relationships
     ]
-    # de-duplicate while preserving order
     seen = set()
     unique_sources = []
     for s in sources:
@@ -91,9 +96,24 @@ def query(req: QueryRequest):
             seen.add(key)
             unique_sources.append(s)
 
+    chains = [
+        ChainFact(path=c["path"], relations=c["relations"], directions=c["directions"])
+        for hit in hits for c in hit.chains
+    ]
+    seen_chains = set()
+    unique_chains = []
+    for c in chains:
+        key = (tuple(c.path), tuple(c.relations))
+        if key not in seen_chains:
+            seen_chains.add(key)
+            unique_chains.append(c)
+
     answer = generate_answer(req.question, hits)
 
-    return QueryResponse(answer=answer, book_id=req.book_id, sources=unique_sources)
+    return QueryResponse(
+        answer=answer, book_id=req.book_id,
+        sources=unique_sources, chains=unique_chains,
+    )
 
 
 app.mount("/static", StaticFiles(directory="api/static"), name="static")

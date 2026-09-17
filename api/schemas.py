@@ -15,12 +15,28 @@ class SourceFact(BaseModel):
     entity2: str
     relation: str
     chunk_id: int
+    query_direction_match: bool | None = None
+    """Whether the query's detected direction matches this fact's
+    stored direction - see retrieval.direction_detection. None means
+    direction couldn't be determined; optional/defaulted for backward
+    compatibility with any existing caller constructing SourceFact
+    directly with only the original four fields."""
+
+
+class ChainFact(BaseModel):
+    """A graph-verified multi-hop path, given as citation provenance
+    for answers that needed more than a single direct fact."""
+
+    path: list[str]
+    relations: list[str]
+    directions: list[str]
 
 
 class QueryResponse(BaseModel):
     answer: str
     book_id: str
     sources: list[SourceFact]
+    chains: list[ChainFact] = Field(default_factory=list)
 
 
 class BookInfo(BaseModel):

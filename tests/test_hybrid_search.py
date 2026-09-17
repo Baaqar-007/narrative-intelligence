@@ -138,6 +138,27 @@ class TestHopDepthEnabled:
         assert "lord" in ends
         assert hits[0].all_relationships[0]["query_direction_match"] is False
 
+    def test_regression_dynamically_estimated_hop_depth_still_finds_the_answer(
+        self, single_hit_collection, knight_graph
+    ):
+        """Regression test for a real bug: hop_depth=2 (hand-picked)
+        happened to have enough budget regardless of an off-by-one in
+        how entity_to_expand_from's backtracking interacts with hop
+        budget - the bug only surfaced when using the ACTUAL value
+        estimate_hop_depth() produces for this exact query (1, not 2).
+        Pinned here so a convenient test parameter can't mask this
+        class of bug again."""
+        from retrieval.direction_detection import estimate_hop_depth
+        query = "who protects the friend of the knight?"
+        real_hop_depth = estimate_hop_depth(query)
+        assert real_hop_depth == 1  # confirms this test exercises the real regression
+
+        corpus = {"1": knight_graph}
+        hits = hybrid_search(single_hit_collection, query, FakeModel(), corpus,
+                              n_results=1, hop_depth=real_hop_depth)
+        ends = {c["end"] for c in hits[0].chains}
+        assert "lord" in ends
+
     def test_redundant_path_back_to_entity1_is_filtered(self, single_hit_collection):
         """squire always has a path back to knight (that's why they were
         matched as a pair) - already covered by all_relationships, must

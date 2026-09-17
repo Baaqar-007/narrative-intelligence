@@ -1,11 +1,4 @@
-"""Tests for retrieval/direction_detection.py.
 
-Covers the anchor-phrase + verb-form design (Week 7) and specifically
-pins down failures found while designing it, so they can't silently
-reappear: the "ment" substring collision with ordinary English words
-(mentioned, sentiment), and the general absence of a verb form for
-relations that don't have one (member_of).
-"""
 
 import pytest
 
@@ -14,6 +7,7 @@ from retrieval.direction_detection import (
     detect_query_direction,
     direction_match,
     entity_to_expand_from,
+    estimate_hop_depth,
 )
 
 
@@ -172,3 +166,41 @@ class TestEntityToExpandFrom:
         genuinely can't be determined - not a regression."""
         result = entity_to_expand_from("What is the weather?", "Taug", "Teeka", "protector_of")
         assert result == "Teeka"
+
+
+class TestEstimateHopDepth:
+    """UNVALIDATED against real free-text queries (see the function's
+    own docstring) - these tests cover the reasoning it was built on,
+    not a claim that the reasoning is correct in general."""
+
+    def test_single_relation_needs_no_extra_hops(self):
+        assert estimate_hop_depth("Who is Taug a companion of?") == 0
+
+    def test_the_actual_motivating_two_hop_example(self):
+        """Regression test for a real bug: verb-form matching originally
+        used word-boundary regex (copied from entity matching by
+        analogy without checking it applied), which broke on
+        conjugated forms - 'protect' doesn't word-boundary-match inside
+        'protects'. Fixed to match detect_query_direction's existing,
+        already-correct plain substring approach."""
+        assert estimate_hop_depth("who protects the friend of the knight?") == 1
+
+    def test_three_distinct_relations_gives_two_hops(self):
+        query = "Who is the leader of the protector of the friend of the knight?"
+        assert estimate_hop_depth(query) == 2
+
+    def test_no_relations_mentioned_gives_zero(self):
+        assert estimate_hop_depth("What is the weather today?") == 0
+
+    def test_known_limitation_same_relation_twice_undercounts(self):
+        """Documented, not hidden: counting DISTINCT relation types
+        means a genuine 2-hop same-relation chain ('the companion of
+        the companion of X') is under-counted to 0. This test pins
+        down the known limitation so it can't silently change without
+        the change being noticed."""
+        assert estimate_hop_depth("the companion of the companion of Taug") == 0
+
+    def test_respects_max_hops_cap(self):
+        many_relations = ("Who is the leader of the protector of the friend of the "
+                           "companion of the enemy of the rival of the mentor of Taug?")
+        assert estimate_hop_depth(many_relations, max_hops=3) == 3

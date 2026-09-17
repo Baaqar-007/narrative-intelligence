@@ -139,3 +139,57 @@ def entity_to_expand_from(query: str, entity1: str, entity2: str, relation: str)
         return entity2
 
     return entity2  # undetermined - preserve original default behavior
+
+
+def estimate_hop_depth(query: str, max_hops: int = 3) -> int:
+    """Estimate how many additional hops beyond the vector-matched pair
+    a query likely needs, from how many DISTINCT relation types are
+    referenced in it.
+
+    UNVALIDATED against real free-text queries - reasoned from one
+    motivating example ("who protects the friend of the knight"
+    mentions two relations: protector_of via its verb form, friend_of
+    via its anchor phrase), not tested against real usage the way
+    detect_query_direction was tested against real corpus-derived
+    examples. Treat with the same provisional status as other
+    untested defaults in this project (e.g. Week 6's phrase-parsing
+    window widths) - a defensible starting point, not a verified one.
+
+    Counts DISTINCT relation types, not total occurrences - a
+    deliberate, narrower choice than counting every mention. This
+    under-counts a genuinely repeated-relation chain ("the companion
+    of the companion of X" - two real hops, same relation type twice,
+    only counts as 1) but avoids the opposite risk: counting every
+    incidental repetition of a common word as a separate hop. Neither
+    choice has been validated against real queries; this is the more
+    conservative of the two, not a fully-resolved decision.
+
+    The vector-matched pair already covers one relation reference (the
+    one that matched), so estimated hop_depth = count - 1, floored at
+    0 (a genuinely single-relation query needs no extra expansion -
+    all_relationships already covers it) and capped at max_hops (this
+    project has only tested traversal correctness up to 3 hops).
+
+    Args:
+        query: Free-text query.
+        max_hops: Upper bound on the estimate - default 3, matching
+            the deepest hop count this project's benchmarks cover.
+
+    Returns:
+        An integer hop_depth, 0 to max_hops.
+    """
+    q_lower = query.lower()
+    relations_mentioned = set()
+
+    for relation in MANUAL_TEMPLATES:
+        anchor = get_anchor_phrase(relation)
+        if anchor is not None and len(anchor) >= MIN_ANCHOR_LENGTH:
+            if any(variant.lower() in q_lower for variant in _anchor_variants(anchor)):
+                relations_mentioned.add(relation)
+                continue
+
+        verb = VERB_FORM_OVERRIDES.get(relation)
+        if verb is not None and verb.lower() in q_lower:
+            relations_mentioned.add(relation)
+
+    return max(0, min(len(relations_mentioned) - 1, max_hops))

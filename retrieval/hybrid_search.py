@@ -89,8 +89,21 @@ def hybrid_search(
                 relationships[0]["relation"] if relationships else "",
             )
             other_entity = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
+
+            effective_hop_depth = hop_depth
+            if expand_from == meta["entity1"]:
+                # entity_to_expand_from backtracked to entity1 because
+                # the matched pair's own direction didn't satisfy the
+                # query - that first hop re-traverses the same edge
+                # that produced the mismatched pair, before reaching
+                # any genuinely new ground. Confirmed as a real bug,
+                # not a hypothetical: hop_depth=1 from "knight" only
+                # reached "squire" (the already-covered entity), never
+                # the actual answer, on the exact motivating query.
+                effective_hop_depth = hop_depth + 1
+
             raw_chains = find_paths_up_to_hops(
-                graph, max_hops=hop_depth, start_node=expand_from, max_samples=20
+                graph, max_hops=effective_hop_depth, start_node=expand_from, max_samples=20
             )
             chains = [c for c in raw_chains if c["end"] != other_entity]
 
