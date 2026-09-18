@@ -199,6 +199,45 @@
   .fact-text { color: var(--ink); }
   .fact-text b { font-weight: 500; }
 
+  /* Chain of evidence - a citation trail through multiple facts,
+     rather than one direct fact. Reuses the exact stamp-mark and
+     fact-text treatment from single sources (same box, same type
+     scale, same bold/muted split) so it reads as a sibling of the
+     existing citation style, not a new component. Only the stamp's
+     imprint changes ("2-hop" instead of "chunk 5"), and hops within
+     one chain are joined by a small muted arrow - typographic
+     notation, not an icon. */
+  .chains-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 16px;
+    margin-top: 4px;
+    margin-bottom: 12px;
+  }
+
+  .chain {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    opacity: 0;
+    animation: stamp-in 0.35s ease forwards;
+  }
+
+  .chain-link {
+    color: var(--ink-soft);
+    opacity: 0.55;
+    font-size: 11px;
+    padding: 0 1px;
+  }
+
   .empty-note, .error-note {
     font-family: 'Source Serif 4', serif;
     font-style: italic;
@@ -218,7 +257,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .source { animation: none; opacity: 1; transform: none; }
+    .source, .chain { animation: none; opacity: 1; transform: none; }
   }
 
   @media (max-width: 480px) {
@@ -272,6 +311,21 @@ async function loadBooks() {
   }
 }
 
+// Renders one hop as "A relation B", entities bolded - matching the
+// same bold/muted treatment single-hop sources already use. `path[i]`
+// and `path[i+1]` are the two entities touched by this hop; direction
+// decides which one is grammatically first, same reconstruction logic
+// as the backend's own chain rendering.
+function renderChainFact(chain) {
+  const hops = chain.relations.map((rel, i) => {
+    const a = chain.path[i];
+    const b = chain.path[i + 1];
+    const [e1, e2] = chain.directions[i] === 'forward' ? [a, b] : [b, a];
+    return `<b>${e1}</b> ${rel.replace(/_/g, ' ')} <b>${e2}</b>`;
+  });
+  return hops.join(' <span class="chain-link">&rarr;</span> ');
+}
+
 function renderResult(data) {
   const sourcesHtml = data.sources.length
     ? data.sources.slice(0, 8).map(s => `
@@ -281,12 +335,27 @@ function renderResult(data) {
         </div>`).join('')
     : '<p class="empty-note">No graph-verified sources found for this question.</p>';
 
+  // Chains are optional - most questions are single-hop and have
+  // none, which is the normal case, not a gap to call out. Nothing
+  // renders at all when there are none, same restraint the theme
+  // already shows elsewhere.
+  const chains = data.chains || [];
+  const chainsHtml = chains.length
+    ? `<div class="chains-label">Chain of evidence (${chains.length})</div>` +
+      chains.map((c, i) => `
+        <div class="chain" style="animation-delay:${(0.05 + i * 0.07).toFixed(2)}s">
+          <span class="stamp-mark">${c.relations.length}-hop</span>
+          <span class="fact-text">${renderChainFact(c)}</span>
+        </div>`).join('')
+    : '';
+
   result.innerHTML = `
     <div class="card answer-section">
       <div class="answer-label">Answer</div>
       <p class="answer-text">${data.answer}</p>
       <div class="sources-label">Sources (${data.sources.length})</div>
       ${sourcesHtml}
+      ${chainsHtml}
     </div>`;
 }
 
