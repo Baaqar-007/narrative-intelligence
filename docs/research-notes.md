@@ -1,7 +1,7 @@
 # NIE v2 — Phase 1 Research Summary (Weeks 1–5)
 
 > Compiled reference covering GraphRAG-adjacent literature and the
-> entity-resolution research thread ; this document is the
+> entity-resolution research thread. This document is the
 > synthesized, cross-referenced version — what each source means for
 > *this* project's decisions, not a restatement of each paper.
 >
@@ -11,6 +11,19 @@
 
 ---
 
+## How to use this document
+
+- **Design implications** sections are the load-bearing content and
+  the fastest path back into this material after a gap.
+- **Open decisions** are collected at the end — nothing here should
+  be treated as settled until those are resolved.
+- Paper identity was independently checked against the actual PDF for
+  every source below (not assumed from filename/citation) — two
+  mismatches were caught this way (Week 1, Week 3) and are noted
+  explicitly where relevant, since they change what the source can
+  and can't be used for.
+
+---
 
 ## Week 1 — Graph RAG landscape ✅
 
@@ -543,9 +556,238 @@ see this fix's effect at all — a second instance of the same lesson as
 Benchmark 1 in v1 (naive metrics can fail to detect a real
 improvement, not just fail to detect a real problem).
 
+## Week 7, continued — direction-detection module, built and wired in ✅
+
+**Design process, three approaches tried in order, each rejected for a
+specific, testable reason** — not settled on the first idea:
+- Cosine similarity between the query and each candidate phrasing:
+  rejected. The two candidate phrasings for any relation share nearly
+  identical word sets, and embedding similarity is fundamentally weak
+  at distinguishing word-order differences when the words themselves
+  overlap - confirmed empirically (a word-vector-averaging model
+  produced IDENTICAL similarity scores for both directions on every
+  test case) and independently reconfirmed by this project's own prior
+  finding (the original "who protects Taug" vector-search failure).
+- A general-purpose dependency parser: rejected. Not because subject/
+  object role detection was the wrong idea, but because general-domain
+  parsers misparse this corpus's invented proper nouns ("Taug" parsed
+  as a noun compound instead of a subject) - the same weakness Week
+  3's BookCoref paper predicted for general NLP tools on literary
+  names, now confirmed a second time in a different task.
+- What works: locating the known entity's position relative to the
+  relation's own already-verified phrasing (embedding.relation_text's
+  MANUAL_TEMPLATES), via two tiers - exact anchor phrase, falling back
+  to a verb form for relations that have one. Deterministic, fails
+  safe (returns None) rather than guessing wrong.
+
+**Three real bugs caught by testing the module against its own design,
+not just accepted on first pass:**
+1. A naive mechanical -er/-or suffix-strip rule for deriving verb
+   forms produced broken stems (mother -> "moth", mentor -> "ment",
+   lover -> "lov") - "ment" collided with ordinary English words
+   ("mentioned", "sentiment"), a silent false positive, not just a
+   missed match. Fixed by hand-verifying the verb-form list instead of
+   deriving it - same discipline MANUAL_TEMPLATES itself needed.
+2. travel_to's anchor phrase is just "to" (2 characters) - matched
+   inside any query containing the word "to" at all, confidently
+   misclassifying unrelated queries. Every other template's anchor is
+   7+ characters, a large natural gap; fixed with MIN_ANCHOR_LENGTH=5.
+3. Short entity names matched as substrings of unrelated names via
+   plain string search ("An" matching inside "Ann"), producing a
+   confidently wrong direction for a sentence about a different
+   person entirely. Fixed with word-boundary regex matching.
+4. (Found while wiring into hybrid_search, not in isolated testing)
+   15/31 templates use "a"/"an" as their anchor's article, but "the X
+   of Y" is equally natural English and was being missed entirely -
+   real, common gap, not an edge case. Fixed with article-variant
+   matching (a/an <-> the).
+
+**Integration into retrieval/hybrid_search.py, two uses:**
+- `entity_to_expand_from()` replaces the previously-hardcoded "always
+  expand chains from entity2" default (explicitly flagged as
+  provisional when hop_depth/chains was first built) - chain expansion
+  now continues from whichever entity the query is actually asking
+  about. Falls back to entity2 (the original default) when direction
+  can't be determined - strictly additive, not a regression.
+- `direction_match()` annotates each fact in all_relationships with
+  True/False/None - whether the query's detected direction aligns
+  with that fact's stored direction. Deliberately additive-only, never
+  filters: a direction mismatch means a fact doesn't directly answer
+  what was asked in the direction asked, not that it's wrong or
+  irrelevant. Whether to use, hide, or deprioritize a mismatched fact
+  is left to whatever consumes this output (e.g. answer_generation.py)
+  - kept out of retrieval's decision-making, consistent with keeping
+  retrieval and presentation concerns separate.
+
+**A genuinely informative integration test result**: for the exact
+"protector of the friend of the knight" motivating example, the
+single-hop fact gets correctly flagged `query_direction_match: False`
+(the query's literal phrasing implies the opposite direction from how
+the fact happens to be stored) - but `chains` still finds the complete
+correct multi-hop answer anyway, because chain expansion explores the
+whole neighborhood of the query-relevant entity rather than being
+constrained by any one fact's specific direction. The system is
+honestly uncertain about the single fact and correct about the full
+answer at the same time - not a contradiction, a demonstration that
+the two mechanisms serve genuinely different purposes.
+
+**Verified against 72 passing tests** across `test_traversal.py`,
+`test_direction_detection.py`, `test_relation_text.py` (additions),
+`test_hybrid_search.py` (additions), `test_benchmark.py` (new),
+`test_relation_ontology.py` (additions) - see `tests/`.
+
+**Genuinely still open, not resolved from this session:**
+- `api/answer_generation.py` and `api/schemas.py` were never seen -
+  whether `EnrichedHit.chains`/`query_direction_match` need any
+  handling there (e.g. strict schema validation choking on new keys)
+  is unverified, not confirmed safe.
+- Chain expansion currently checks direction using only the first
+  relationship in a multi-relationship pair (`relationships[0]`) when
+  choosing which entity to expand from - untested for pairs with
+  multiple, differently-directed relation types between the same two
+  entities.
+- No live end-to-end test exists exercising a real ChromaDB collection
+  and real SentenceTransformer together with this feature - all
+  testing here uses fakes, by design, but real vector-search behavior
+  (versus a fake returning fixed results) is unverified.
+
 ---
 
-## Cross-cutting patterns found across independent sources
+## Week 7, real-usage reality check — north star audit ⚠️
+
+**Context**: after Week 7 was declared closed (traversal, direction
+detection, wiring, API, UI all shipped and unit/integration tested),
+real informal usage against the live system — not synthetic test
+data — was checked against the project's own north star claim:
+*"does making narrative state explicit give us causal traceability,
+structural consistency, controllability, and reproducibility that
+implicit LLM simulation doesn't naturally provide."* Three problems
+were reported from that real usage; a `diagnose_direction_coverage.py`
+(zero-dependency, text-only) and `diagnose_pipeline.py` (full
+pipeline, real corpus/ChromaDB/model) were built to get evidence
+rather than debug from memory, since no specific failing examples
+were retained. **This is arguably the most important finding of the
+whole project so far** — it's the first check against real,
+unscripted usage rather than curated or auto-generated test data, and
+it changes what "Week 7 complete" actually means.
+
+**The core methodological lesson, stated once, applies to everything
+below**: every test built during Week 7 (93+ passing tests) used
+synthetic graphs or benchmark questions generated by
+`generate_questions()`/`generate_nhop_questions()` — and
+`direction_detection.py` was validated against exactly the phrasing
+those generators produce (`"Who is X a Y of?"`). Benchmark and
+detector were tested against each other's output, never against
+independent human phrasing. Structurally the same trap as
+`evaluate_nhop_graph()`'s self-consistency bug (fixed earlier in
+Week 7) — recurring one level higher in the stack, where no unit test
+could see it.
+
+### 1. Direction-detection coverage — confirmed near-total failure on real phrasing
+
+`diagnose_direction_coverage.py` run against 3 real corpus names
+(Taug, Akut, Teeka) across 8 phrasing styles:
+
+- **"of"-genitive (the tested style)**: 100% detected, as expected.
+- **Possessive genitive** (`"Taug's companion"`, `"Taug's friend's
+  leader"`): **0% detected**, consistently across all 3 names — not
+  a one-name fluke. `detect_query_direction()` itself returns `None`
+  here, not just `estimate_hop_depth()` — meaning `direction_match`
+  and `entity_to_expand_from` are silently inert for this entire
+  phrasing family, not just chains.
+- **New, dangerous finding — false positive, not just missed
+  coverage**: `"Who does Taug's companion protect?"` → confidently
+  detected `forward`. This is wrong: the query is about Taug's
+  *companion's* protectee (a 2-hop relationship), not Taug's own
+  `protector_of` role. Plain substring verb-matching found "Taug"
+  positioned before "protect" and fired, with no awareness that
+  `"'s companion"` sits structurally between them. A confident wrong
+  answer, not a safe decline — the one exception found so far to the
+  "fails safe" property everything else in Week 7 held to.
+- **New finding — unhandled question type**: yes/no questions
+  (`"Is Taug a companion of Akut?"`) get treated as wh-questions
+  seeking an unknown entity. Not a phrasing coverage gap so much as a
+  missing question-type classification the system was never designed
+  to have.
+
+### 2. Chains — 0/11 on real, naturally-phrased multi-hop questions, for three compounding causes
+
+`diagnose_pipeline.py` run against 11 real questions from an actual
+book (Felix Holt), each checked twice for retrieval stability.
+`hop_depth = 0` and `total_chains = 0` on **all 11**, no exceptions.
+Three separate, compounding causes identified, not one:
+
+1. **Possessive genitive** (known, confirmed above) — compounded
+   further when it's layered under an "of"-genitive prefix (e.g.
+   `"the mother of Esther Lyon's husband"` — the outer phrase would
+   match, the inner one doesn't).
+2. **Missing gendered kinship vocabulary, new finding**:
+   `MANUAL_TEMPLATES` has `parent_father_of`/`parent_mother_of` but no
+   entries at all for "husband," "wife," "son," or "daughter" — not a
+   phrasing-style problem, a genuine ontology coverage gap dating to
+   v1's original template set, invisible until real family-relation
+   questions were tried.
+3. **Modifier-breaks-exact-match, new finding**: `"the biological
+   father of"` doesn't contain the literal substring `"the father
+   of"` — anchor matching requires contiguity, and any inserted
+   adjective defeats it silently.
+
+### 3. Entity canonicalization — confirmed, and worse than any prior documented finding
+
+Matched pairs from real retrieval included bare pronouns stored as
+canonical entity names (`('rufus lyon', 'you')`, `('mr. lyon',
+'her')`) **and full descriptive clauses**
+(`('jermyn', "jermyn's third daughter")`,
+`('jermyn', 'his third affectionate and expensive daughter')`). This
+goes beyond every previously-documented entity-quality finding
+(README's "apes"/"the apes" generic-entity gap, the "his brother"
+pronoun caveat, Week 5's EVNT mistagging) — those were about
+*ambiguous* canonical strings; this is *raw, uncleaned extraction
+noise* with no canonicalization pass applied at all. Directly explains
+why `query_direction_match` is `None` almost everywhere in the
+pipeline diagnostic: these "entity names" could never appear in a
+real user's query text, so direction detection has nothing to anchor
+to regardless of phrasing coverage. Real, concrete input for scoping
+Week 8's entity resolution work more aggressively than the original
+Week 4 proposal assumed (mechanical pre-filtering of pronoun-only and
+clause-length raw strings, before any of the alias/coreference work
+begins).
+
+### 4. Reproducibility — cleanly isolated to exactly one layer
+
+`retrieval_stable_across_calls = True` on all 11 questions — graph
+traversal and ChromaDB retrieval are deterministic here; ruled out as
+a contributor, not just assumed clean.
+
+`llm_stable_on_same_facts = False` on 10/11 — confirms `temperature=
+0.2` (a v1-era default, never revisited before this check) as the
+cause, not a guess. Most instances were cosmetic rewording of "cannot
+be determined." **One was not cosmetic**: for *"Who is the lawyer
+that manages the estate of Mrs. Transome's son?"*, the identical
+retrieved facts produced "cannot be determined" on one call and an
+unhedged *"The lawyer who manages the estate... is Lawyer Jermyn"* on
+the other — inferring "owns the estate" implies "manages the estate,"
+which no retrieved fact states. This is the prompt's own explicit
+"say plainly it cannot be determined... rather than guessing"
+instruction being violated on roughly half of identical trials, on a
+question that isn't even multi-hop. A serious finding independent of
+everything else here.
+
+### Recommended order of fixes, not yet started
+
+1. `temperature=0` — cheap, directly evidenced, no dependency on
+   anything else here.
+2. Gendered kinship synonyms (husband/wife/son/daughter) +
+   modifier-tolerant anchor matching (allow 0–2 inserted words) — small
+   and mechanical, but deserves its own careful build-and-test pass,
+   not a rushed patch, given how much the possessive-genitive fix
+   already grew once actually investigated.
+3. Possessive-genitive support in `detect_query_direction()` itself
+   (not just `estimate_hop_depth()`) — still the largest lift.
+4. Entity-canonicalization severity — feed into Week 8's scoping as
+   evidence, not patched ad hoc now.
+
+
 
 These weren't designed to compare — they surfaced from reading
 unrelated papers in sequence, which makes the convergence worth
@@ -609,3 +851,35 @@ recording:
    low-degree-answer questions vs. hub-answer questions. Any future
    degree-cap mitigation must be validated against that same accuracy
    split, not against its own degree-distribution output.
+9. ⚠️ **Revised — Week 7 was NOT fully closed, despite the prior
+   entry here.** Query-direction detection was built, unit/integration
+   tested (93 passing tests), and wired into `hybrid_search.py` — but
+   a real-usage audit against the north star (see "Week 7, real-usage
+   reality check" section above) found the phrasing-coverage gap is
+   severe enough that the feature is near-inert on real questions
+   (0/11 chains found on real multi-hop questions). Tests passing was
+   necessary but not sufficient evidence of "closed" — correcting the
+   premature claim rather than leaving it standing.
+10. ✅ **Resolved** — `api/answer_generation.py`/`api/schemas.py`/
+    `api/main.py` all reviewed and updated (`ChainFact` schema,
+    dynamic `hop_depth`, chains wired through to the LLM prompt and
+    API response, UI updated). A real off-by-one bug in hop-budget
+    compensation was caught only by testing through the actual API
+    endpoint with a dynamically-estimated `hop_depth`, not a
+    hand-picked test value — logged as its own methodological lesson.
+11. 🔲 **Open, prioritized** — from the real-usage audit:
+    (a) ✅ **Resolved and verified** — `temperature=0` set in
+    `retrieval/answer_generation.py`. Re-ran `diagnose_pipeline.py`
+    after the change: retrieval remained stable (as before), and LLM
+    stability rose from 1/11 to 10/11. The one remaining unstable case
+    ("Who is the mother of Esther Lyon's husband?") was checked
+    directly, side by side — confirmed genuinely cosmetic wording
+    only ("available data" vs. "given data"), not a second Jermyn-
+    style over-inference. Real evidence, not assumed clean.
+    (b) 🔲 add gendered kinship synonyms (husband/wife/son/daughter/
+    brother/sister) + modifier-tolerant anchor matching - in progress;
+    (c) possessive-genitive support in `detect_query_direction()`
+    itself, not just `estimate_hop_depth()` - not started;
+    (d) feed the entity-canonicalization severity findings (bare
+    pronouns and full descriptive clauses stored as canonical entity
+    names) into Week 8's scoping - not started.

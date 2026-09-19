@@ -1,3 +1,22 @@
+"""Generates a natural-language answer from hybrid retrieval results.
+
+This is the final step of the pipeline (Hybrid Retrieval -> LLM ->
+Answer). The LLM's job is strictly limited to phrasing - it is given
+only facts already graph-verified upstream, and instructed not to add
+anything beyond them.
+
+WEEK 7 UPDATE: this previously rendered only hit.all_relationships,
+silently ignoring hit.chains and the query_direction_match annotation
+entirely - meaning neither of Week 7's actual features (multi-hop
+chains, direction-mismatch flagging) reached the LLM at all, despite
+being correctly computed upstream. Fixed here. Also required updating
+the prompt's "never chain facts" instruction, which was correct for
+the original single-hop-only pipeline but would have caused the model
+to either ignore chains entirely or misapply the instruction to them -
+chains are graph-verified paths, not something the model is combining
+on its own, and the prompt now says so explicitly.
+"""
+
 import os
 
 from groq import Groq
@@ -6,6 +25,26 @@ from embedding.relation_text import relation_to_sentence
 from retrieval.hybrid_search import EnrichedHit
 
 MODEL = "openai/gpt-oss-20b"
+
+TEMPERATURE = 0
+"""Was 0.2 - changed after a real-usage audit confirmed it as the
+cause of observed non-reproducibility (retrieval was independently
+verified deterministic across identical calls; the LLM layer was not
+- 10/11 test questions produced differently-worded "cannot be
+determined" answers on identical retrieved facts, and one question
+produced an unhedged, over-inferred wrong answer on one of two
+identical trials - see docs/, "Week 7, real-usage reality check").
+
+Honest limit, not a full guarantee: temperature=0 makes the SAME
+input produce the SAME output reliably - it does not make that output
+CORRECT. The Jermyn over-inference case wasn't the model choosing
+between right and wrong at random; it was over-inferring "owns implies
+manages" on one of two trials. At temperature=0 that same over-
+inference would very plausibly happen every time, not half the time -
+consistently wrong, not fixed. If that turns out to still happen,
+it's a separate, prompt-instruction-following problem, not a sampling
+problem, and needs its own fix rather than being expected to disappear
+here."""
 
 _client: Groq | None = None
 
@@ -130,7 +169,7 @@ def generate_answer(question: str, hits: list[EnrichedHit]) -> str:
     response = client.chat.completions.create(
         model=MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
+        temperature=TEMPERATURE,
         max_tokens=500,
         reasoning_effort="low",
     )
