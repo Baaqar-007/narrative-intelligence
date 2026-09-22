@@ -7,4 +7,3 @@ __pycache__/
 data/
 model_cache/
 update.py
-diagnose/

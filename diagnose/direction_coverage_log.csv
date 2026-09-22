@@ -1,0 +1,25 @@
+style,query,entity,relation,detected_direction,estimated_hop_depth
+of-genitive (tested style),Who is Taug a companion of?,Taug,companion_of,forward,0
+of-genitive (tested style),Who is Akut a companion of?,Akut,companion_of,forward,0
+of-genitive (tested style),Who is Teeka a companion of?,Teeka,companion_of,forward,0
+"of-genitive, verb form",Who protects Taug?,Taug,protector_of,reverse,0
+"of-genitive, verb form",Who protects Akut?,Akut,protector_of,reverse,0
+"of-genitive, verb form",Who protects Teeka?,Teeka,protector_of,reverse,0
+possessive 's (untested style),Who is Taug's companion?,Taug,companion_of,,0
+possessive 's (untested style),Who is Akut's companion?,Akut,companion_of,,0
+possessive 's (untested style),Who is Teeka's companion?,Teeka,companion_of,,0
+"possessive 's, verb form",Who does Taug's companion protect?,Taug,protector_of,forward,0
+"possessive 's, verb form",Who does Akut's companion protect?,Akut,protector_of,forward,0
+"possessive 's, verb form",Who does Teeka's companion protect?,Teeka,protector_of,forward,0
+relative clause (untested style),Who is the person that Taug protects?,Taug,protector_of,forward,0
+relative clause (untested style),Who is the person that Akut protects?,Akut,protector_of,forward,0
+relative clause (untested style),Who is the person that Teeka protects?,Teeka,protector_of,forward,0
+yes/no question (untested style),Is Taug a companion of Akut?,Taug,companion_of,forward,0
+yes/no question (untested style),Is Akut a companion of Akut?,Akut,companion_of,forward,0
+yes/no question (untested style),Is Teeka a companion of Akut?,Teeka,companion_of,forward,0
+"nested of-genitive, 2-hop",Who is the leader of the friend of Taug?,Taug,friend_of,reverse,1
+"nested of-genitive, 2-hop",Who is the leader of the friend of Akut?,Akut,friend_of,reverse,1
+"nested of-genitive, 2-hop",Who is the leader of the friend of Teeka?,Teeka,friend_of,reverse,1
+"nested possessive, 2-hop",Who is Taug's friend's leader?,Taug,friend_of,,0
+"nested possessive, 2-hop",Who is Akut's friend's leader?,Akut,friend_of,,0
+"nested possessive, 2-hop",Who is Teeka's friend's leader?,Teeka,friend_of,,0

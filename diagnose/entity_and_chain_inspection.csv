@@ -1,0 +1,659 @@
+entity1,entity1_appears_in_question,entity2,entity2_appears_in_question,hop_depth,path,query_direction_match,question,relations,type
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+,,,,1,esther -> her father,,Who is the mother of Esther Lyon's husband?,child_of,chain_sample
+,,,,1,esther -> her father,,Who is the mother of Esther Lyon's husband?,adopted_by,chain_sample
+,,,,1,esther -> her father,,Who is the mother of Esther Lyon's husband?,child_of,chain_sample
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+esther,True,mr. lyon,False,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+mr. lyon,False,esther,True,1,,,Who is the mother of Esther Lyon's husband?,,fact
+felix holt,True,his father,False,1,,,Who is the father of Felix Holt's wife?,,fact
+,,,,1,his father -> his mother,,Who is the father of Felix Holt's wife?,spouse_of,chain_sample
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+his mother,False,felix holt,True,1,,,Who is the father of Felix Holt's wife?,,fact
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> him,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> another son,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> he,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+his mother,False,felix holt,True,1,,,Who is the father of Felix Holt's wife?,,fact
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> him,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> another son,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> he,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+his mother,False,felix holt,True,1,,,Who is the father of Felix Holt's wife?,,fact
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> harold,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> him,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> another son,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+,,,,1,his mother -> he,,Who is the father of Felix Holt's wife?,parent_mother_of,chain_sample
+his mother,False,felix holt,True,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+felix holt,True,his mother,False,1,,,Who is the father of Felix Holt's wife?,,fact
+,,,,1,felix holt -> george eliot,,Who is the father of Felix Holt's wife?,created_by,chain_sample
+,,,,1,felix holt -> christian,,Who is the father of Felix Holt's wife?,companion_of,chain_sample
+,,,,1,felix holt -> christian,,Who is the father of Felix Holt's wife?,companion_of,chain_sample
+,,,,1,felix holt -> johnson,,Who is the father of Felix Holt's wife?,companion_of,chain_sample
+,,,,1,felix holt -> johnson,,Who is the father of Felix Holt's wife?,relative_of,chain_sample
+mrs. transome,True,son,True,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+,,,,1,son -> my son,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+mrs. transome,True,son,True,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+,,,,1,son -> my son,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> a little grandson,,Who is the biological father of Mrs. Transome's son?,parent_father_of,chain_sample
+,,,,1,her son -> she,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> a little grandson,,Who is the biological father of Mrs. Transome's son?,parent_father_of,chain_sample
+,,,,1,her son -> she,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,1,,,Who is the biological father of Mrs. Transome's son?,,fact
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> her,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+,,,,1,her son -> a little grandson,,Who is the biological father of Mrs. Transome's son?,parent_father_of,chain_sample
+,,,,1,her son -> she,,Who is the biological father of Mrs. Transome's son?,child_of,chain_sample
+harold transome,True,mother,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold transome,True,his mother,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold transome,True,his mother,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold transome,True,his mother,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold transome,True,his mother,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+mrs. transome,False,harold,True,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+harold,True,mrs. transome,False,0,,,Who is the servant loyal to Harold Transome's mother?,,fact
+rufus lyon,True,you,False,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+,,,,2,you -> mr. jermyn,,Who is the mother of Rufus Lyon's daughter's husband?,protector_of,chain_sample
+,,,,2,you -> mr. jermyn -> tommy,,Who is the mother of Rufus Lyon's daughter's husband?,"protector_of,employer_of",chain_sample
+,,,,2,you -> mr. jermyn -> mr. johnson,,Who is the mother of Rufus Lyon's daughter's husband?,"protector_of,relative_of",chain_sample
+,,,,2,you -> mr. jermyn -> mr. johnson,,Who is the mother of Rufus Lyon's daughter's husband?,"protector_of,companion_of",chain_sample
+,,,,2,you -> mr. jermyn -> transome estate,,Who is the mother of Rufus Lyon's daughter's husband?,"protector_of,member_of",chain_sample
+rufus lyon,True,your,False,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+,,,,2,your -> father,,Who is the mother of Rufus Lyon's daughter's husband?,child_of,chain_sample
+,,,,2,your -> father -> mother,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,spouse_of",chain_sample
+,,,,2,your -> father -> mother,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,spouse_of",chain_sample
+,,,,2,your -> father -> esther,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,parent_father_of",chain_sample
+,,,,2,your -> father -> my,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,parent_father_of",chain_sample
+mr. lyon,False,her,True,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+,,,,2,her -> denner,,Who is the mother of Rufus Lyon's daughter's husband?,companion_of,chain_sample
+,,,,2,her -> denner -> mrs. transome,,Who is the mother of Rufus Lyon's daughter's husband?,"companion_of,companion_of",chain_sample
+,,,,2,her -> denner -> mrs. transome,,Who is the mother of Rufus Lyon's daughter's husband?,"companion_of,companion_of",chain_sample
+,,,,2,her -> denner -> mrs. transome,,Who is the mother of Rufus Lyon's daughter's husband?,"companion_of,companion_of",chain_sample
+,,,,2,her -> denner -> mrs. transome,,Who is the mother of Rufus Lyon's daughter's husband?,"companion_of,companion_of",chain_sample
+mr. lyon,False,rufus,True,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+,,,,2,rufus -> mistress holt,,Who is the mother of Rufus Lyon's daughter's husband?,teacher_of,chain_sample
+,,,,2,rufus -> mistress holt -> lyddy,,Who is the mother of Rufus Lyon's daughter's husband?,"teacher_of,relative_of",chain_sample
+,,,,2,rufus -> mistress holt -> mrs. holt,,Who is the mother of Rufus Lyon's daughter's husband?,"teacher_of,relative_of",chain_sample
+,,,,2,rufus -> mistress holt -> my own son,,Who is the mother of Rufus Lyon's daughter's husband?,"teacher_of,parent_mother_of",chain_sample
+,,,,2,rufus -> mistress holt -> your son,,Who is the mother of Rufus Lyon's daughter's husband?,"teacher_of,parent_mother_of",chain_sample
+rufus lyon,True,esther,False,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+rufus lyon,True,esther,False,2,,,Who is the mother of Rufus Lyon's daughter's husband?,,fact
+,,,,2,esther -> mr. lyon,,Who is the mother of Rufus Lyon's daughter's husband?,child_of,chain_sample
+,,,,2,esther -> mr. lyon -> christian,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,companion_of",chain_sample
+,,,,2,esther -> mr. lyon -> christian,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,distrusted",chain_sample
+,,,,2,esther -> mr. lyon -> christian,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,companion_of",chain_sample
+,,,,2,esther -> mr. lyon -> christian,,Who is the mother of Rufus Lyon's daughter's husband?,"child_of,companion_of",chain_sample
+mrs. holt,True,her son,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+,,,,2,her son -> her,,Who is the father of Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,2,her son -> her -> denner,,Who is the father of Mrs. Holt's son's wife?,"child_of,companion_of",chain_sample
+,,,,2,her son -> her -> her father,,Who is the father of Mrs. Holt's son's wife?,"child_of,child_of",chain_sample
+,,,,2,her son -> her -> her father,,Who is the father of Mrs. Holt's son's wife?,"child_of,child_of",chain_sample
+,,,,2,her son -> her -> her father,,Who is the father of Mrs. Holt's son's wife?,"child_of,child_of",chain_sample
+mrs. holt,True,his mother,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+,,,,2,his mother -> harold,,Who is the father of Mrs. Holt's son's wife?,parent_mother_of,chain_sample
+,,,,2,his mother -> harold -> mrs. transome,,Who is the father of Mrs. Holt's son's wife?,"parent_mother_of,child_of",chain_sample
+,,,,2,his mother -> harold -> mrs. transome,,Who is the father of Mrs. Holt's son's wife?,"parent_mother_of,child_of",chain_sample
+,,,,2,his mother -> harold -> mrs. transome,,Who is the father of Mrs. Holt's son's wife?,"parent_mother_of,parent_mother_of",chain_sample
+,,,,2,his mother -> harold -> mrs. transome,,Who is the father of Mrs. Holt's son's wife?,"parent_mother_of,child_of",chain_sample
+mrs. holt,True,her husband,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+,,,,2,her husband -> mary,,Who is the father of Mrs. Holt's son's wife?,spouse_of,chain_sample
+,,,,2,her husband -> mary -> her own son,,Who is the father of Mrs. Holt's son's wife?,"spouse_of,parent_mother_of",chain_sample
+,,,,2,her husband -> hanoverian army,,Who is the father of Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,2,her husband -> annette,,Who is the father of Mrs. Holt's son's wife?,lover_of,chain_sample
+,,,,2,her husband -> annette -> her baby,,Who is the father of Mrs. Holt's son's wife?,"lover_of,protector_of",chain_sample
+mrs. holt,True,your son,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+,,,,2,your son -> your late husband,,Who is the father of Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,2,your son -> your late husband -> mistress holt,,Who is the father of Mrs. Holt's son's wife?,"child_of,spouse_of",chain_sample
+,,,,2,your son -> his poor mother,,Who is the father of Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,2,your son -> his poor mother -> his own father's lawful child,,Who is the father of Mrs. Holt's son's wife?,"child_of,spouse_of",chain_sample
+mrs. holt,True,mr. holt,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,2,,,Who is the father of Mrs. Holt's son's wife?,,fact
+,,,,2,mr. holt -> miss,,Who is the father of Mrs. Holt's son's wife?,friend_of,chain_sample
+,,,,2,mr. holt -> miss -> lyddy,,Who is the father of Mrs. Holt's son's wife?,"friend_of,companion_of",chain_sample
+,,,,2,mr. holt -> mr. lyon,,Who is the father of Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,2,mr. holt -> mr. lyon -> esther,,Who is the father of Mrs. Holt's son's wife?,"member_of,parent_father_of",chain_sample
+,,,,2,mr. holt -> mr. lyon -> esther,,Who is the father of Mrs. Holt's son's wife?,"member_of,adopted_by",chain_sample
+lawyer jermyn,False,transome estate,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her own son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her husband,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her husband,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her husband,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her husband,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the lawyer that manages the estate of Mrs. Transome's son?,,fact
+jermyn,True,daughters,False,1,,,Who is the mother of Matthew Jermyn's biological son?,,fact
+,,,,1,daughters -> esther,,Who is the mother of Matthew Jermyn's biological son?,companion_of,chain_sample
+mr. jermyn,False,his daughters,False,1,,,Who is the mother of Matthew Jermyn's biological son?,,fact
+,,,,1,his daughters -> miss lyon,,Who is the mother of Matthew Jermyn's biological son?,companion_of,chain_sample
+jermyn,True,jermyn's third daughter,False,1,,,Who is the mother of Matthew Jermyn's biological son?,,fact
+mother,True,jermyn,True,1,,,Who is the mother of Matthew Jermyn's biological son?,,fact
+,,,,1,jermyn -> transome court,,Who is the mother of Matthew Jermyn's biological son?,visits,chain_sample
+,,,,1,jermyn -> johnson,,Who is the mother of Matthew Jermyn's biological son?,rival_of,chain_sample
+,,,,1,jermyn -> johnson,,Who is the mother of Matthew Jermyn's biological son?,employer_of,chain_sample
+,,,,1,jermyn -> johnson,,Who is the mother of Matthew Jermyn's biological son?,employer_of,chain_sample
+,,,,1,jermyn -> johnson,,Who is the mother of Matthew Jermyn's biological son?,enemy_of,chain_sample
+jermyn,True,his third affectionate and expensive daughter,False,1,,,Who is the mother of Matthew Jermyn's biological son?,,fact
+mr. transome,False,party,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,son,True,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. transome,True,her son,False,0,,,Who is the Conservative candidate against Mrs. Transome's son?,,fact
+mrs. holt,True,her son,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+,,,,1,her son -> her,,Who is Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,1,her son -> her,,Who is Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,1,her son -> her,,Who is Mrs. Holt's son's wife?,child_of,chain_sample
+,,,,1,her son -> a little grandson,,Who is Mrs. Holt's son's wife?,parent_father_of,chain_sample
+,,,,1,her son -> she,,Who is Mrs. Holt's son's wife?,child_of,chain_sample
+mrs. holt,True,her husband,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+,,,,1,her husband -> mary,,Who is Mrs. Holt's son's wife?,spouse_of,chain_sample
+,,,,1,her husband -> hanoverian army,,Who is Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,1,her husband -> annette,,Who is Mrs. Holt's son's wife?,lover_of,chain_sample
+,,,,1,her husband -> mary,,Who is Mrs. Holt's son's wife?,spouse_of,chain_sample
+,,,,1,her husband -> mrs. transome,,Who is Mrs. Holt's son's wife?,spouse_of,chain_sample
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+,,,,1,mr. holt -> miss,,Who is Mrs. Holt's son's wife?,friend_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+,,,,1,mr. holt -> miss,,Who is Mrs. Holt's son's wife?,friend_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+mrs. holt,True,mr. holt,False,1,,,Who is Mrs. Holt's son's wife?,,fact
+,,,,1,mr. holt -> miss,,Who is Mrs. Holt's son's wife?,friend_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,member_of,chain_sample
+,,,,1,mr. holt -> mr. lyon,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
+,,,,1,mr. holt -> esther,,Who is Mrs. Holt's son's wife?,companion_of,chain_sample
