@@ -41,7 +41,7 @@ TEST_QUESTIONS = [
 # is expected to exist here - if THIS also drowns in noise, the
 # problem is the traversal itself, not something specific to
 # high-degree Felix Holt characters.
-POSITIVE_CONTROL = ("Who is a companion of Taug?", "106")
+POSITIVE_CONTROL = ("Who is the enemy of the companion of taug?", "106")
 
 
 def inspect_question(question, book_id, corpus, collection, model):

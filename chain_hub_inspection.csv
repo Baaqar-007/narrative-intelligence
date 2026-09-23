@@ -342,6 +342,103 @@ Who is Mrs. Holt's son's wife?,1,mr. holt -> felix,sibling_of,"[26, 364]",364,1
 Who is Mrs. Holt's son's wife?,1,mr. holt -> felix,companion_of,"[26, 364]",364,1
 Who is Mrs. Holt's son's wife?,1,mr. holt -> lyddy,companion_of,"[26, 33]",33,1
 Who is Mrs. Holt's son's wife?,1,mr. holt -> lyddy,companion_of,"[26, 33]",33,1
-
-=== POSITIVE CONTROL 'Who is a companion of Taug?': 0 chains ===
-  ** No chains found even for the positive control - traversal itself may be the issue, not just hub-degree **
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,companion_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> younger apes,"companion_of,companion_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,companion_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> younger apes,"companion_of,companion_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,companion_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> younger apes,"companion_of,companion_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,companion_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> younger apes,"companion_of,companion_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,companion_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> younger apes,"companion_of,companion_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,friend_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> tantor,"companion_of,companion_of","[173, 657, 41]",657,1
