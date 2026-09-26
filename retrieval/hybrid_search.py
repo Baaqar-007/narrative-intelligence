@@ -17,11 +17,11 @@ from graph.relation_ontology import SYMMETRIC_RELATIONS
 from graph.traversal import find_paths_up_to_hops
 from retrieval.direction_detection import direction_match, entity_to_expand_from, mentioned_relations, target_relation
 from temporal.trajectory import get_relationships_between
-from retrieval.direction_detection import target_relation
-print("Testing target_relation()")
-print(target_relation("Who is the mother of Esther Lyon's husband?"))
-print(target_relation("Who is the mother of Rufus Lyon's daughter's husband?"))
-print(target_relation("Who is the enemy of the companion of taug?"))
+# from retrieval.direction_detection import target_relation
+# print("Testing target_relation()")
+# print(target_relation("Who is the mother of Esther Lyon's husband?"))
+# print(target_relation("Who is the mother of Rufus Lyon's daughter's husband?"))
+# print(target_relation("Who is the enemy of the companion of taug?"))
 
 @dataclass
 class EnrichedHit:
@@ -79,9 +79,9 @@ def hybrid_search(
         n_results=n_results,
         where=where_filter,
     )
-    graph = corpus.get("40882")
-    print("Test graph edges for 'esther' to 'felix':")
-    print([d for _, v, d in graph.edges(nbunch=["esther"], data=True) if v == "felix"])
+    # graph = corpus.get("40882")
+    # print("Test graph edges for 'esther' to 'felix':")
+    # print([d for _, v, d in graph.edges(nbunch=["esther"], data=True) if v == "felix"])
 
     query_target_relation = target_relation(query_text)
     enriched = []
@@ -98,35 +98,39 @@ def hybrid_search(
 
         chains = []
         if hop_depth > 0:
+            matched_relation = meta.get("relation")
             expand_from = entity_to_expand_from(
                 query_text, meta["entity1"], meta["entity2"],
-                query_target_relation or "",
+                matched_relation or "",
             )
-            other_entity = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
-            matched_relation = meta.get("relation")
-            effective_hop_depth = hop_depth            
-            if expand_from == meta["entity1"] or matched_relation in SYMMETRIC_RELATIONS:
-                effective_hop_depth = hop_depth + 1
-            # ... (bump comment/condition unchanged - still uses matched_relation,
-            # this check is about whether the FIRST hop re-treads the matched
-            # pair's own edge, which is about that edge's symmetry, not about
-            # what the query is ultimately asking for)
+            if expand_from is not None:
+                other_entity = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
+                effective_hop_depth = hop_depth
+                if expand_from == meta["entity1"] or matched_relation in SYMMETRIC_RELATIONS:
+                    effective_hop_depth = hop_depth + 1
+                # ... (bump comment/condition unchanged - still uses matched_relation,
+                # this check is about whether the FIRST hop re-treads the matched
+                # pair's own edge, which is about that edge's symmetry, not about
+                # what the query is ultimately asking for)
 
-            allowed = mentioned_relations(query_text)
-            raw_chains = find_paths_up_to_hops(
-                graph, max_hops=effective_hop_depth, start_node=expand_from,
-                max_samples=20, allowed_relations=allowed,
-            )
-            # Strict terminal equality against the query's single target
-            # relation - computed once per query above, not per hit, so
-            # it can't be diluted by a union across differently-matched
-            # hits (Issue 1 from the previous round).
-            chains = [
-                c for c in raw_chains
-                if c["end"] != other_entity
-                and query_target_relation is not None
-                and c["relations"][-1] == query_target_relation
-            ]
+                allowed = mentioned_relations(query_text)
+                raw_chains = find_paths_up_to_hops(
+                    graph, max_hops=effective_hop_depth, start_node=expand_from,
+                    max_samples=20, allowed_relations=allowed,
+                )
+                # Strict terminal equality against the query's single target
+                # relation - computed once per query above, not per hit, so
+                # it can't be diluted by a union across differently-matched
+                # hits (Issue 1 from the previous round).
+                chains = [
+                    c for c in raw_chains
+                    if c["end"] != other_entity
+                    and query_target_relation is not None
+                    and c["relations"][-1] == query_target_relation
+                ]
+            # expand_from is None: query couldn't be confidently anchored
+            # to either entity in this pair - leave chains empty rather
+            # than expand from a guessed node.
 
         enriched.append(EnrichedHit(
             query_match_text=doc,

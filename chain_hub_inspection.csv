@@ -1,0 +1,10 @@
+question,hop_depth,path,relations,path_degrees,max_degree_in_path,corpus_median_degree_for_reference
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> buto,"companion_of,enemy_of","[173, 657, 7]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> bull,"companion_of,enemy_of","[173, 657, 1]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> sheeta,"companion_of,enemy_of","[173, 657, 48]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> apes of kerchak,"companion_of,enemy_of","[173, 657, 7]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> the panther,"companion_of,enemy_of","[173, 657, 3]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> numgo,"companion_of,enemy_of","[173, 657, 5]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> mbonga,"companion_of,enemy_of","[173, 657, 90]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> the blacks,"companion_of,enemy_of","[173, 657, 16]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan -> the small apes,"companion_of,enemy_of","[173, 657, 1]",657,1

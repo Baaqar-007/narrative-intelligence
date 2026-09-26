@@ -52,9 +52,17 @@ NOUN_SYNONYMS: dict[str, list[str]] = {
     "spouse_of": ["husband", "wife"],
     "child_of": ["son", "daughter"],
     "sibling_of": ["brother", "sister"],
+    "parent_mother_of": ["son", "daughter"],
+    "parent_father_of": ["son", "daughter"],
 }
 """Gendered alternatives for ungendered canonical nouns - found
-missing entirely in real-usage testing ("the husband of Esther Lyon")."""
+missing entirely in real-usage testing ("the husband of Esther Lyon").
+parent_mother_of/parent_father_of added after the 40882 diagnostic:
+their anchor noun is "mother"/"father", but a query naming the CHILD
+("Mrs. Transome's son") needs "son"/"daughter" recognized as the
+reverse-gendered term for that same relation - the same gap as
+spouse_of, just not caught the first time because that round of
+testing didn't happen to ask a parent-relation question this way."""
 
 
 def _anchor_variants(anchor: str) -> list[str]:
@@ -125,9 +133,26 @@ def _find_possessive_direction(query_lower: str, entity_lower: str, relation: st
     direction is FIXED, not position-dependent. Proven by working
     through relation semantics: "X's employer" means X is the
     employee; "X's father" means X is the child. The possessor always
-    ends up in the role the anchor noun does NOT name (entity2)."""
+    ends up in the role the anchor noun does NOT name (entity2).
+
+    Possessor tolerates 0-2 trailing words before the 's (e.g. entity
+    "harold" matching "Harold Transome's") - the graph's canonical
+    entity is often a bare first name while the query naturally uses
+    the full name. Found via the 40882 diagnostic: entity string was
+    confirmed present in the query, direction still came back None,
+    because the old pattern required the 's to sit directly against
+    the entity with nothing between.
+
+    Known, accepted limitation of this tolerance, not yet fixed: with
+    a coordinated possessor ("Taug and Akut's mother"), "taug" as
+    entity would wrongly match with "and akut" as the 0-2 tolerated
+    words, attributing Akut's mother to Taug instead. Not observed in
+    real data yet (unlike the boundary gap this fix addresses, which
+    was) - logged here rather than solved speculatively, consistent
+    with the project's revisit-on-evidence pattern elsewhere."""
     for noun in _relation_nouns(relation):
-        pattern = _possessive_noun_pattern(noun, re.escape(entity_lower))
+        possessor = re.escape(entity_lower) + r"(?:\s+\w+){0,2}"
+        pattern = _possessive_noun_pattern(noun, possessor)
         if re.search(pattern, query_lower):
             return "reverse"
     return None
@@ -173,9 +198,12 @@ def direction_match(query: str, fact: dict) -> bool | None:
     return None
 
 
-def entity_to_expand_from(query: str, entity1: str, entity2: str, relation: str) -> str:
+def entity_to_expand_from(query: str, entity1: str, entity2: str, relation: str) -> str | None:
     """Which entity chain expansion should continue from - the one the
-    query asks ABOUT. Falls back to entity2 if undetermined."""
+    query asks ABOUT. Returns None if undetermined - callers must not
+    assume a usable node name back (Week 7 audit: silently defaulting
+    to entity2 here produced confidently wrong chains, not safe
+    declines)."""
     detected = detect_query_direction(query, entity1, relation)
     if detected == "forward":
         return entity2
@@ -186,32 +214,68 @@ def entity_to_expand_from(query: str, entity1: str, entity2: str, relation: str)
         return entity1
     if detected == "forward":
         return entity2
-    return entity2
+    return None
 
 def target_relation(query: str) -> str | None:
-    """The single relation this query is ultimately asking about - the
-    outermost relation in a nested genitive chain (e.g. "the mother of
-    Esther Lyon's husband" -> parent_mother_of, not spouse_of, even
-    though spouse_of is also mentioned). Heuristic: the relation whose
-    anchor phrase appears LEFTMOST in the query. Holds for both
-    "X of Y's Z" and "the ... of X's Y's Z" phrasing (confirmed against
-    real Week 7 audit examples) because English places the final-
-    answer relation before its nested modifying clause in both cases -
-    not proven for every possible phrasing. Distinct from
-    mentioned_relations(), which returns the full unordered set (used
-    for allowed_relations filtering, where all mentioned types should
-    still be traversable as intermediate hops)."""
+    """The single relation this query is ultimately asking about.
+
+    Two distinct sentence shapes, handled differently - conflating
+    them was the root cause of a real bug (see below), not a stylistic
+    choice:
+
+    1. Explicit "the X of ..." lead-in (e.g. "the mother of Esther
+       Lyon's husband") - the outer relation is named directly, before
+       any nested possessive clause. LEFTMOST match among of-genitive/
+       verb-form mentions wins; a nested possessive noun later in the
+       string ("husband") is a modifier of the lead-in's object, not a
+       competing candidate.
+    2. Pure possessive chain, no lead-in (e.g. "Mrs. Holt's son's
+       wife?") - there is no outer phrase; the question's target is
+       the FINAL noun in the chain, everything before it just narrows
+       down which person is meant. RIGHTMOST possessive match wins.
+
+    Ties within either group decline (None) rather than guess - found
+    necessary via the 40882 diagnostic: after NOUN_SYNONYMS gained
+    "son"/"daughter" for parent_mother_of AND parent_father_of (on top
+    of the pre-existing child_of entry), a query merely containing
+    "son" produces a 3-way tie at the same position. The previous
+    leftmost-only version resolved ties via MANUAL_TEMPLATES' dict
+    insertion order - silent, unintentional, and confirmed to produce
+    a confidently wrong relation (parent_father_of) for two questions
+    that don't ask about a father at all ("the lawyer... of Mrs.
+    Transome's son", "the Conservative candidate against Mrs.
+    Transome's son" - "son" there identifies a person, not a relation
+    being asked about).
+
+    Distinct from mentioned_relations(), which returns the full
+    unordered set regardless of shape or position (used for
+    allowed_relations filtering, where every mentioned type should
+    still be traversable as an intermediate hop).
+    """
     q_lower = query.lower()
-    positions: dict[str, int] = {}
+    of_genitive_positions: dict[str, int] = {}
+    possessive_positions: dict[str, int] = {}
     for relation in MANUAL_TEMPLATES:
         idx = _find_relation_mention(q_lower, relation)
-        if idx is None:
-            idx = _find_possessive_position(q_lower, relation)
         if idx is not None:
-            positions[relation] = idx
-    if not positions:
+            of_genitive_positions[relation] = idx
+            continue
+        idx = _find_possessive_position(q_lower, relation)
+        if idx is not None:
+            possessive_positions[relation] = idx
+
+    if of_genitive_positions:
+        candidates, pick = of_genitive_positions, min
+    elif possessive_positions:
+        candidates, pick = possessive_positions, max
+    else:
         return None
-    return min(positions, key=positions.get)
+
+    target_idx = pick(candidates.values())
+    winners = [r for r, idx in candidates.items() if idx == target_idx]
+    if len(winners) > 1:
+        return None
+    return winners[0]
 
 def mentioned_relations(query: str) -> set[str]:
     """Set of relation types recognized anywhere in the query - any
