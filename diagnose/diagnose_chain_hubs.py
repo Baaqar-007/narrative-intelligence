@@ -74,6 +74,7 @@ def inspect_question(question, book_id, corpus, collection, model):
                 "max_degree_in_path": max((d for d in path_degrees if d is not None), default=None),
                 "corpus_median_degree_for_reference": corpus_median_degree,
             })
+    
     return rows
 
 

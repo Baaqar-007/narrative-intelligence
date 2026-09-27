@@ -1,0 +1,45 @@
+question,hop_depth,path,relations,path_degrees,max_degree_in_path,corpus_median_degree_for_reference
+Who is the biological father of Mrs. Transome's son?,2,mrs. transome -> harold -> jermyn,"parent_mother_of,parent_father_of","[206, 417, 199]",417,1
+Who is the biological father of Mrs. Transome's son?,2,mrs. transome -> harold -> little harry,"parent_mother_of,parent_father_of","[206, 417, 9]",417,1
+Who is the biological father of Mrs. Transome's son?,2,mrs. transome -> harold -> harry,"parent_mother_of,parent_father_of","[206, 417, 41]",417,1
+Who is the biological father of Mrs. Transome's son?,2,mrs. transome -> harold -> father,"parent_mother_of,parent_father_of","[206, 417, 47]",417,1
+Who is the biological father of Mrs. Transome's son?,2,mrs. transome -> harold -> a little boy,"parent_mother_of,parent_father_of","[206, 417, 2]",417,1
+Who is the biological father of Mrs. Transome's son?,2,son -> my son -> little boy,"child_of,parent_father_of","[4, 4, 2]",4,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,rufus lyon -> you -> your mother -> felix,"parent_father_of,child_of,parent_mother_of","[12, 19, 6, 364]",364,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,you -> your mother -> felix,"child_of,parent_mother_of","[19, 6, 364]",364,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,your -> father -> mother -> the child,"child_of,spouse_of,parent_mother_of","[2, 47, 30, 7]",47,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,your -> father -> mother -> son,"child_of,spouse_of,parent_mother_of","[2, 47, 30, 4]",47,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,mr. lyon -> esther -> mother -> the child,"parent_father_of,child_of,parent_mother_of","[270, 556, 30, 7]",556,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,mr. lyon -> esther -> mother -> son,"parent_father_of,child_of,parent_mother_of","[270, 556, 30, 4]",556,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,her -> her father -> she -> mother,"child_of,parent_father_of,parent_mother_of","[49, 65, 29, 30]",65,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,her -> her father -> she -> her son,"child_of,parent_father_of,parent_mother_of","[49, 65, 29, 23]",65,1
+Who is the mother of Rufus Lyon's daughter's husband?,3,her -> her father -> she -> his,"child_of,parent_father_of,parent_mother_of","[49, 65, 29, 5]",65,1
+Who is the father of Mrs. Holt's son's wife?,3,mrs. holt -> felix -> esther -> mr. lyon,"parent_mother_of,spouse_of,parent_father_of","[98, 364, 556, 270]",556,1
+Who is the father of Mrs. Holt's son's wife?,3,her son -> her -> her father -> she,"child_of,child_of,parent_father_of","[23, 49, 65, 29]",65,1
+Who is the father of Mrs. Holt's son's wife?,3,her son -> her -> her father -> esther,"child_of,child_of,parent_father_of","[23, 49, 65, 556]",556,1
+Who is the father of Mrs. Holt's son's wife?,3,her son -> her -> her father -> his daughter,"child_of,child_of,parent_father_of","[23, 49, 65, 2]",65,1
+Who is Mrs. Holt's son's wife?,3,mrs. holt -> felix -> mother -> father,"parent_mother_of,child_of,spouse_of","[98, 364, 30, 47]",364,1
+Who is Mrs. Holt's son's wife?,3,mrs. holt -> felix -> esther,"parent_mother_of,spouse_of","[98, 364, 556]",556,1
+Who is Mrs. Holt's son's wife?,3,mrs. holt -> felix -> esther -> harold transome,"parent_mother_of,spouse_of,spouse_of","[98, 364, 556, 94]",556,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband,"child_of,spouse_of","[23, 49, 14]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> mary,"child_of,spouse_of,spouse_of","[23, 49, 14, 4]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> mrs. transome,"child_of,spouse_of,spouse_of","[23, 49, 14, 206]",206,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> she,"child_of,spouse_of,spouse_of","[23, 49, 14, 29]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> lady debarry,"child_of,spouse_of,spouse_of","[23, 49, 14, 17]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> esther,"child_of,spouse_of,spouse_of","[23, 49, 14, 556]",556,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her husband -> mrs. tiliot,"child_of,spouse_of,spouse_of","[23, 49, 14, 7]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her imbecile husband,"child_of,spouse_of","[23, 49, 1]",49,1
+Who is Mrs. Holt's son's wife?,3,her son -> her -> her mother -> minister,"child_of,child_of,spouse_of","[23, 49, 7, 21]",49,1
+Who is Mrs. Holt's son's wife?,3,her husband -> mary,spouse_of,"[14, 4]",14,1
+Who is Mrs. Holt's son's wife?,3,her husband -> mrs. holt -> felix -> esther,"spouse_of,parent_mother_of,spouse_of","[14, 98, 364, 556]",556,1
+Who is Mrs. Holt's son's wife?,3,mr. holt -> mrs. holt -> felix -> esther,"spouse_of,parent_mother_of,spouse_of","[26, 98, 364, 556]",556,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> tarzan,enemy_of,"[173, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> sheeta,enemy_of,"[173, 48]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> numa,enemy_of,"[173, 98]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> dango,enemy_of,"[173, 7]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> toog,enemy_of,"[173, 35]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> rodent,enemy_of,"[173, 1]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,taug -> gunto,enemy_of,"[173, 21]",173,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,gunto -> numa,enemy_of,"[21, 98]",98,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,gunto -> tarzan,enemy_of,"[21, 657]",657,1
+[POSITIVE CONTROL] Who is the enemy of the companion of taug?,1,gunto -> enemy,enemy_of,"[21, 4]",21,1

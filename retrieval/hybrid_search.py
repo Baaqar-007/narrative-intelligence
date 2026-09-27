@@ -97,40 +97,14 @@ def hybrid_search(
             fact["query_direction_match"] = direction_match(query_text, fact)
 
         chains = []
-        if hop_depth > 0:
-            matched_relation = meta.get("relation")
-            expand_from = entity_to_expand_from(
-                query_text, meta["entity1"], meta["entity2"],
-                matched_relation or "",
+        if hop_depth > 0 and query_target_relation is not None:
+            allowed = mentioned_relations(query_text)
+            e1, e2 = meta["entity1"], meta["entity2"]
+            chains = (
+                _expand_from_entity(graph, e1, e2, hop_depth, query_target_relation, allowed)
+                + _expand_from_entity(graph, e2, e1, hop_depth, query_target_relation, allowed)
             )
-            if expand_from is not None:
-                other_entity = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
-                effective_hop_depth = hop_depth
-                if expand_from == meta["entity1"] or matched_relation in SYMMETRIC_RELATIONS:
-                    effective_hop_depth = hop_depth + 1
-                # ... (bump comment/condition unchanged - still uses matched_relation,
-                # this check is about whether the FIRST hop re-treads the matched
-                # pair's own edge, which is about that edge's symmetry, not about
-                # what the query is ultimately asking for)
-
-                allowed = mentioned_relations(query_text)
-                raw_chains = find_paths_up_to_hops(
-                    graph, max_hops=effective_hop_depth, start_node=expand_from,
-                    max_samples=20, allowed_relations=allowed,
-                )
-                # Strict terminal equality against the query's single target
-                # relation - computed once per query above, not per hit, so
-                # it can't be diluted by a union across differently-matched
-                # hits (Issue 1 from the previous round).
-                chains = [
-                    c for c in raw_chains
-                    if c["end"] != other_entity
-                    and query_target_relation is not None
-                    and c["relations"][-1] == query_target_relation
-                ]
-            # expand_from is None: query couldn't be confidently anchored
-            # to either entity in this pair - leave chains empty rather
-            # than expand from a guessed node.
+            
 
         enriched.append(EnrichedHit(
             query_match_text=doc,
@@ -143,3 +117,66 @@ def hybrid_search(
         ))
 
     return enriched
+
+# def _hop_bump(start_entity: str, matched_e1: str, matched_relation: str | None) -> int:
+#     """Whether the first hop re-treads the matched pair's own edge -
+#     always true starting from entity1 (that's the edge's direction),
+#     true starting from entity2 only if the relation is symmetric
+#     (same edge, reachable either way). Generalizes the original
+#     single-expand_from bump condition to either starting entity."""
+#     if start_entity == matched_e1:
+#         return 1
+#     return 1 if matched_relation in SYMMETRIC_RELATIONS else 0
+
+def _terminal_answer(chain: dict) -> str:
+    """The node the query is actually asking for, from the terminal
+    edge of this chain.
+
+    SYMMETRIC relations (see graph.relation_ontology.SYMMETRIC_RELATIONS)
+    have no meaningful entity1/entity2 role distinction - "X's enemy"
+    and "Y's enemy" where X enemy_of Y is the same real-world fact
+    regardless of which was recorded as entity1. For these, the answer
+    is simply the newly-reached node (chain["end"]) - NOT entity1's
+    position. Confirmed as a real bug, not a hypothesis: this exact
+    case zeroed the Taug/Tarzan positive control, because several
+    real enemy_of edges happen to store tarzan as entity1 - the old
+    entity1-based rule answered "tarzan" (the start node, already
+    excluded) instead of the actual enemy.
+
+    For non-symmetric relations, the entity1-based rule from before
+    still holds (all MANUAL_TEMPLATES phrase entity1 as the wanted
+    role for both phrasing shapes target_relation() recognizes) - not
+    proven for a hypothetical future synonym naming entity2 instead.
+    """
+    if chain["relations"][-1] in SYMMETRIC_RELATIONS:
+        return chain["end"]
+    if chain["directions"][-1] == "forward":
+        return chain["path"][-2]
+    return chain["path"][-1]
+
+
+def _expand_from_entity(graph, start, other, hop_depth, query_target_relation, allowed):
+    raw_chains = find_paths_up_to_hops(
+        graph, max_hops=hop_depth, start_node=start,
+        max_samples=20, allowed_relations=allowed,
+    )
+    chains = []
+    for c in raw_chains:
+        if query_target_relation is None or c["relations"][-1] != query_target_relation:
+            continue
+        answer = _terminal_answer(c)
+        if answer in (start, other):
+            # answer == other: just restates the originally-matched
+            # fact, already covered by all_relationships.
+            # answer == start: the chain's terminal edge resolves back
+            # to the anchor entity itself (e.g. a direct, possibly
+            # contradictory taug-enemy_of->tarzan edge evaluated from
+            # taug's own side) - not a real answer to a question about
+            # that entity. Both cases are "not new information," for
+            # different reasons - conflating them under one check
+            # (checking only `answer == other`, or only `end`) is what
+            # broke last turn; both need checking explicitly.
+            continue
+        chains.append({**c, "answer": answer})
+    return chains
+        
