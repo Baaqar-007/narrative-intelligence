@@ -1,5 +1,7 @@
 import pandas as pd
 from retrieval.direction_detection import estimate_hop_depth, target_relation
+from ..diagnostics.generate_positive_controls import build_index, step
+from pathlib import Path
 
 df = pd.read_csv("yardstick_results.csv", encoding="cp1252")
 seqs = df.sequence.str.split(" > ").apply(lambda s: [x.split(":")[0] for x in s])
@@ -41,3 +43,15 @@ print(f"pure HIT: {(h.precision == 1).sum()}/{len(clean)}  "
 
 m = df[(df.anchor == "mrs. transome") & df.sequence.str.startswith("parent_mother_of:e2")]
 print(m[["question", "gold", "answers", "outcome"]].to_string())  # may be empty: cap-sampled out
+
+clean = df[(df.gate == "passed parse gates")]
+t = clean.groupby("first_step_retrieved").outcome.value_counts(normalize=True).mul(100).round(1)
+print(t)
+print(clean.first_step_retrieved.value_counts()) 
+
+from graph.corpus import load_corpus
+corpus = load_corpus(Path("data/graphs/corpus.pkl"))
+graph = corpus.get("40882")
+index = build_index(graph)  # from the yardstick script
+frontier = step(index, "mrs. transome", "parent_mother_of", "e2")
+print(frontier)

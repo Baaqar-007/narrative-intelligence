@@ -98,12 +98,37 @@ def hybrid_search(
 
         chains = []
         if hop_depth > 0 and query_target_relation is not None:
-            allowed = mentioned_relations(query_text)
-            e1, e2 = meta["entity1"], meta["entity2"]
-            chains = (
-                _expand_from_entity(graph, e1, e2, hop_depth, query_target_relation, allowed)
-                + _expand_from_entity(graph, e2, e1, hop_depth, query_target_relation, allowed)
+            matched_relation = meta.get("relation")
+            expand_from = entity_to_expand_from(
+                query_text, meta["entity1"], meta["entity2"], matched_relation or "",
             )
+            if expand_from is not None:
+                other = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
+                allowed = mentioned_relations(query_text)
+                effective_hop_depth = hop_depth
+                if expand_from == meta["entity1"] or matched_relation in SYMMETRIC_RELATIONS:
+                    effective_hop_depth = hop_depth + 1
+                raw_chains = find_paths_up_to_hops(
+                    graph, max_hops=effective_hop_depth, start_node=expand_from,
+                    max_samples=20, allowed_relations=allowed,
+                )
+                for c in raw_chains:
+                    if c["relations"] and c["relations"][-1] == query_target_relation:
+                        answer = _terminal_answer(c)  # unchanged from day 2
+                        if answer not in (expand_from, other):
+                            chains.append({**c, "answer": answer})
+            # expand_from is None: query couldn't be confidently anchored to
+            # either entity - leave chains empty rather than expand from a
+            # guess. This is the deliberate reversion point from the
+            # dual-expansion spike (see day-2/day-3 log): dual expansion
+            # removed this gate but introduced an unresolved gap - chains
+            # could satisfy the terminal relation without respecting the
+            # query's relation SEQUENCE (e.g. a 1-hop "taug enemy_of X"
+            # answering a query that asks for "the enemy of taug's
+            # companion"). Single expansion doesn't have this gap, because
+            # starting from the query-direction-appropriate side inherently
+            # respects the established first relation. Revisit once the
+            # relation-sequence extractor (scoped, not built) exists.
             
 
         enriched.append(EnrichedHit(

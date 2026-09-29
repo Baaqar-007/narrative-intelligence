@@ -91,29 +91,33 @@ def step(index, node, relation, want):
     return set(e1s) if want == "e1" else set(e2s) if want == "e2" else set(e1s) | set(e2s)
 
 
-def walk(index, anchor, seq, frontier, hops):
+def walk(index, anchor, seq, frontier, hops, enforce_purity=True, excluded=None):
     if len(seq) == hops:
         yield seq, frontier
+        return
+    if enforce_purity and len(frontier) > 1 and len(seq) > 0:
+        if excluded is not None:
+            excluded[0] += 1
         return
     for key in STEP_KEYS:
         nxt = set().union(*(step(index, n, *key) for n in frontier)) - {anchor}
         if nxt:
-            yield from walk(index, anchor, seq + [key], nxt, hops)
+            yield from walk(index, anchor, seq + [key], nxt, hops, enforce_purity, excluded)
 
 
-def generate(graph, book_id, rng, hops, cap):
+def generate(graph, book_id, rng, hops, cap, enforce_purity=True):
     index, degree = build_index(graph), dict(graph.degree())
     anchors = sorted(n for n in graph.nodes if is_nameable(n))
     rng.shuffle(anchors)
-    combo_counts, out = Counter(), []
+    combo_counts, out, excluded = Counter(), [], [0]
     for anchor in anchors:
-        for seq, gold in walk(index, anchor, [], {anchor}, hops):
+        for seq, gold in walk(index, anchor, [], {anchor}, hops, enforce_purity, excluded):
             label = " > ".join(f"{r}:{w}" for r, w in seq)
             if combo_counts[label] >= cap:
                 continue
             combo_counts[label] += 1
             phrase = string.capwords(anchor)
-            for key in seq:                       # innermost step first
+            for key in seq:
                 phrase = f"the {STEPS[key]} of {phrase}"
             out.append({
                 "book_id": book_id, "question": f"Who is {phrase}?", "anchor": anchor,
@@ -124,10 +128,11 @@ def generate(graph, book_id, rng, hops, cap):
                 "gold_max_degree": max(degree.get(g, 0) for g in gold),
                 "anchor_degree": degree.get(anchor, 0),
                 "first_step_symmetric": seq[0][1] == "sym",
-                "gendered": any(STEPS[k] in GENDERED for k in seq),
                 "first_rel": seq[0][0],
-                "first_nodes": step(index, anchor, *seq[0])
+                "first_nodes": step(index, anchor, *seq[0]),
+                "gendered": any(STEPS[k] in GENDERED for k in seq)
             })
+    print(f"  [{book_id}] excluded by purity filter: {excluded[0]}")
     return out
 
 
