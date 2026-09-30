@@ -60,18 +60,35 @@ for _rel, _nouns in ROLE_NOUNS.items():
 STEP_KEYS = sorted(STEPS)
 GENDERED = {"son", "daughter", "husband", "wife", "brother", "sister"}
 
+from resolution.pronoun_filter import is_pronoun_generic
+
 _FUNCTION_WORDS = {"he", "she", "her", "his", "him", "you", "your", "my", "me", "i", "we",
                    "our", "us", "they", "them", "their", "it", "its", "the", "a", "an",
                    "this", "that", "these", "those", "some", "little", "young", "old"}
-_GENERIC = {n for m in ROLE_NOUNS.values() for n in m} | {"party", "people", "man", "woman",
-                                                          "boy", "girl", "baby", "lady"}
+
+# Social-role/title descriptors - NOT kinship or pronoun patterns, so
+# deliberately NOT folded into resolution.pronoun_filter (a different
+# category, unvalidated at that module's level). Day-5 audit found
+# "gentlewoman" playing the same generic-anchor role as the kinship
+# nouns; "the count"/"the king" (definite article + bare title) is a
+# related but distinct pattern this set does not catch - flagged,
+# not fixed here.
+_SOCIAL_ROLE_GENERIC = {"party", "people", "man", "woman", "boy", "girl", "lady", "gentlewoman"}
 
 
 def is_nameable(entity: str) -> bool:
-    """Heuristic only: could a real query plausibly contain this string?"""
+    """Heuristic only: could a real query plausibly contain this
+    string? The kinship/pronoun check now delegates to
+    resolution.pronoun_filter.is_pronoun_generic (single source of
+    truth, day-5 fix) - this function previously kept its own
+    separate _GENERIC set, derived from ROLE_NOUNS, which had
+    silently drifted out of sync with the live resolution module
+    (missing "daughter" despite "son" being present in both)."""
     tokens = entity.split()
-    return (1 <= len(tokens) <= 4 and tokens[0] not in _FUNCTION_WORDS
-            and entity not in _GENERIC)
+    return (1 <= len(tokens) <= 4
+            and tokens[0].lower() not in _FUNCTION_WORDS
+            and not is_pronoun_generic(entity)
+            and entity.lower() not in _SOCIAL_ROLE_GENERIC)
 
 
 def build_index(graph):
