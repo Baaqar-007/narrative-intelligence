@@ -1,4 +1,4 @@
-# scripts/diagnostics/compare_is_nameable_change.py
+
 """Paired comparison for the is_nameable() delegation change (day 5) -
 without reverting the live file. Reconstructs what generate() would
 have produced under the OLD is_nameable (pre-delegation, pre-plural/
@@ -51,21 +51,23 @@ def is_nameable_old(entity: str) -> bool:
             and entity not in _OLD_GENERIC)
 
 
-def generate_with_nameable(graph, book_id, rng, hops, cap, nameable_fn, enforce_purity=True):
-    """Copy of generate(), parameterized on which is_nameable to use -
-    mirrors the CURRENT generate() field-for-field (including
-    first_rel/first_nodes, added day 4, and the purity-exclusion
-    counter, added day 4) so downstream scoring works identically for
-    both populations. Only the anchor-selection line (nameable_fn)
-    differs from the live function."""
+def generate_with_nameable(graph, book_id, hops, cap, nameable_fn, enforce_purity=True):
+    """... same as before, but for A/B comparison purposes cap should
+    be passed as None/unbounded - see run_comparison() below. A
+    per-sequence-label cap is order-dependent (which anchors "use up"
+    a combo slot first depends on where they sit in iteration order),
+    so even deterministic sorted order doesn't make the tighter-
+    filtered population a true subset when capping is active. Capping
+    is correct for the main yardstick's diversity sampling; it's
+    wrong for an A/B test whose entire point is "does this exact set
+    of questions change.\""""
     index, degree = build_index(graph), dict(graph.degree())
     anchors = sorted(n for n in graph.nodes if nameable_fn(n))
-    rng.shuffle(anchors)
     combo_counts, out, excluded = Counter(), [], [0]
     for anchor in anchors:
         for seq, gold in walk(index, anchor, [], {anchor}, hops, enforce_purity, excluded):
             label = " > ".join(f"{r}:{w}" for r, w in seq)
-            if combo_counts[label] >= cap:
+            if cap is not None and combo_counts[label] >= cap:
                 continue
             combo_counts[label] += 1
             phrase = string.capwords(anchor)
@@ -88,15 +90,13 @@ def generate_with_nameable(graph, book_id, rng, hops, cap, nameable_fn, enforce_
     return out
 
 
-def run_population(books, corpus, adapter, rng_seed, hops, cap, generate_fn, **generate_kwargs):
-    """Shared driver for both populations - generate + score every
-    question, one book at a time, via the real adapter."""
-    rng, rows = random.Random(rng_seed), []
+def run_population(books, corpus, adapter, hops, cap, generate_fn, **generate_kwargs):
+    rows = []
     for book_id, label in books.items():
         graph = corpus.get(book_id)
         if graph is None:
             continue
-        for q in generate_fn(graph, book_id, rng, hops, cap, **generate_kwargs):
+        for q in generate_fn(graph, book_id, hops=hops, cap=cap, **generate_kwargs):
             result = adapter(q["question"], book_id, q["anchor"], q["first_rel"], q["first_nodes"])
             rows.append({**q, "book": label, **score(q["gold_set"], result)})
     return pd.DataFrame(rows)
@@ -107,24 +107,26 @@ def main():
     adapter = make_hybrid_adapter(get_collection(path=str(DATA_DIR / "chroma")),
                                   load_embedding_model(), corpus)
 
-    print("Generating OLD-is_nameable population...")
-    before = run_population(BOOKS, corpus, adapter, SEED, HOPS, CAP_PER_COMBO,
+    print("Generating OLD-is_nameable population (deterministic order, uncapped)...")
+    before = run_population(BOOKS, corpus, adapter, HOPS, None,
                              generate_with_nameable, nameable_fn=is_nameable_old)
     before.to_csv("yardstick_old_is_nameable.csv", index=False)
 
-    print("Generating CURRENT-is_nameable population...")
-    after = run_population(BOOKS, corpus, adapter, SEED, HOPS, CAP_PER_COMBO, generate)
+    print("Generating CURRENT-is_nameable population (deterministic order, uncapped)...")
+    after = run_population(BOOKS, corpus, adapter, HOPS, None,
+                            generate_with_nameable, nameable_fn=is_nameable)
     after.to_csv("yardstick_current_is_nameable.csv", index=False)
 
     b = before.set_index(["book_id", "question"])
     a = after.set_index(["book_id", "question"])
     common = b.index.intersection(a.index)
-    only_old = b.index.difference(a.index)   # anchors the NEW filter excludes
-    only_new = a.index.difference(b.index)   # should be empty - new filter is strictly tighter
+    only_old = b.index.difference(a.index)
+    only_new = a.index.difference(b.index)
 
     print(f"\nOld population: {len(b)}, current population: {len(a)}, common: {len(common)}")
     print(f"Questions only in OLD (now excluded by tighter filter): {len(only_old)}")
-    print(f"Questions only in NEW (unexpected - filter should only tighten): {len(only_new)}")
+    print(f"Questions only in NEW (should be exactly 0 now): {len(only_new)}")
+    assert len(only_new) == 0, "only_new is non-empty - the comparison is STILL invalid, stop and investigate before reading further output"
 
     print(f"\n-- common questions, paired --")
     print(f"  old HIT: {b.loc[common].outcome.eq('HIT').mean():.1%}"
