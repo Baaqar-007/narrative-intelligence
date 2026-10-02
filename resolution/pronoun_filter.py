@@ -44,12 +44,8 @@ import networkx as nx
 
 
 class ResolutionTier(str, Enum):
-    """Confidence tier for a resolution_map entry. Only one tier is
-    populated by this module; later Week 8 stages will add more
-    (surface_variant, hard_alias_candidate, coreference_*) - this
-    module's scope stops at EXCLUDED_PRONOUN_GENERIC."""
-
     EXCLUDED_PRONOUN_GENERIC = "excluded_pronoun_generic"
+    SURFACE_VARIANT = "surface_variant"  # new
 
 
 @dataclass(frozen=True)
@@ -57,6 +53,7 @@ class ResolutionEntry:
     raw_name: str
     tier: ResolutionTier
     reason: str
+    canonical_form: str | None = None  # new - populated only for SURFACE_VARIANT entries
 
 
 # Hand-seeded, NOT exhaustive. Sourced from this project's own real
@@ -138,21 +135,19 @@ def build_resolution_map(graph: nx.MultiDiGraph) -> dict[str, ResolutionEntry]:
     }
 
 
-def is_excluded_from_composition(
-    entity: str, resolution_map: dict[str, ResolutionEntry]
-) -> bool:
-    """Whether multi-hop graph composition should refuse to continue
-    THROUGH `entity` as an intermediate node.
+def is_excluded_from_composition(entity, resolution_map):
+    entry = resolution_map.get(entity)
+    return entry is not None and entry.tier in (
+        ResolutionTier.EXCLUDED_PRONOUN_GENERIC,
+        ResolutionTier.AMBIGUOUS_VARIANT_CANDIDATE,
+    )
 
-    Single-hop retrieval is NOT affected - a raw fact like ("her
-    son", "parent_father_of", "jermyn") stays fully retrievable on its
-    own (non-destructive: nothing is hidden from single-hop lookups).
-    This check exists only for traversal/composition logic (e.g.
-    graph.traversal.find_paths_up_to_hops, or the day-3 yardstick's
-    walk()) deciding whether to extend a chain through this node.
-
-    Not automatically wired into any existing traversal function yet
-    - integration into retrieval.hybrid_search / graph.traversal is a
-    separate, deliberate follow-up, not done by this module.
-    """
-    return entity in resolution_map
+def resolve_canonical(entity: str, resolution_map: dict[str, ResolutionEntry]) -> str:
+    """Map a known surface-variant string to its canonical form.
+    Returns `entity` unchanged if it's not a surface-variant entry
+    (including pronoun/generic entries, which have no canonical
+    form - use is_excluded_from_composition for that case instead)."""
+    entry = resolution_map.get(entity)
+    if entry is not None and entry.tier == ResolutionTier.SURFACE_VARIANT and entry.canonical_form:
+        return entry.canonical_form
+    return entity
