@@ -1,40 +1,14 @@
 # resolution/pronoun_filter.py
 """Stage 0 of entity resolution (Week 8): mechanical pre-filter for
-bare-pronoun and generic-noun strings that ARF/GPT-4o extraction
-stored as if they were canonical entity names (e.g. "her son",
-"mother", "his", "the child").
+bare-pronoun and generic-noun strings stored as if they were
+canonical entity names (e.g. "her son", "mother", "his", "the child").
 
-WHY THIS RUNS FIRST, ahead of Week 4's original Stage A (mechanical
-alias merging): Day 4's corpus-wide audit (functional-step scope -
-the e1 role of parent_father_of/parent_mother_of, the one relation
-family where a single answer is structurally correct) found 58% of
-confirmed entity fragmentation is this pronoun/generic pattern,
-against 9% for surface-name variants (Stage A's target). Filtering
-these out first is also a genuine dependency, not just a priority
-call: a pronoun string must never become an alias-merge candidate
-("her son" should not be clustered with "harold" - it isn't an alias
-of Harold, it's a failure to resolve Harold at all).
-
-NON-DESTRUCTIVE: never mutates the graph. Produces a resolution_map
-entry per flagged node - raw facts stay retrievable, but multi-hop
-composition (graph traversal chaining two or more hops) must refuse
-to continue THROUGH an excluded node, mirroring the day-3 yardstick's
-own walk()-purity fix (an intermediate frontier of unknown identity
-must not be composed further). See Week 4's summary-doc entry for the
-full resolution_map architecture.
-
-DETECTION MECHANISM, deliberately simple for now: a hand-seeded list
-of pronouns/determiners/generic-kinship-nouns, matched against an
-entity string's FINAL token (catches "her son", "his mother", "your
-daughter" - the possessive/determiner sits first, the generic noun
-last). Same category of choice as MANUAL_TEMPLATES: correct until a
-real case falls outside it, not a general solution. NOT YET measured
-for miss rate (a real pronoun/generic string this list fails to
-catch) or false-positive rate (a genuine character literally named
-"Father" or "Son" - not observed in this corpus, not proven absent).
-Escalating to a POS-tagging-based detector is deferred until a real
-miss rate is measured against a full audit pass - not assumed
-necessary in advance.
+WHY THIS RUNS FIRST, ahead of Stage A (surface-variant merging): a
+corpus-wide audit found 58% of confirmed functional-step entity
+fragmentation is this pronoun/generic pattern, vs 9% for surface-name
+variants. A pronoun string must also never become a Stage A merge
+candidate - "her son" is not an alias of a real name, it's a failure
+to resolve one. Non-destructive throughout: never mutates the graph.
 """
 
 from dataclasses import dataclass
@@ -44,8 +18,14 @@ import networkx as nx
 
 
 class ResolutionTier(str, Enum):
+    """Confidence tier for a resolution_map entry. Defined once here
+    (not duplicated per stage) since Stage A's entries share this
+    enum - avoids two independently-maintained tier definitions
+    drifting apart."""
+
     EXCLUDED_PRONOUN_GENERIC = "excluded_pronoun_generic"
-    SURFACE_VARIANT = "surface_variant"  # new
+    SURFACE_VARIANT = "surface_variant"
+    AMBIGUOUS_VARIANT_CANDIDATE = "ambiguous_variant_candidate"
 
 
 @dataclass(frozen=True)
@@ -53,76 +33,67 @@ class ResolutionEntry:
     raw_name: str
     tier: ResolutionTier
     reason: str
-    canonical_form: str | None = None  # new - populated only for SURFACE_VARIANT entries
+    canonical_form: str | None = None  # populated only for SURFACE_VARIANT
 
 
-# Hand-seeded, NOT exhaustive. Sourced from this project's own real
-# findings: the Week 7 audit's "her"/"you" pronoun examples, and
-# days 2-4's Harold-cluster diagnostics ("her son", "my son",
-# "mother", "her own son"). Extend only from a real, observed miss -
-# don't pre-guess additions "to be safe" (adds false-positive risk on
-# real character names without a corresponding measured benefit).
+# Hand-seeded, NOT exhaustive. Sourced from real findings across this
+# project: bare pronouns ("her", "you"), and the Harold-cluster
+# diagnostics ("her son", "my son", "mother", "her own son"). Extend
+# only from a real, observed miss.
 PRONOUN_GENERIC_LAST_TOKEN: frozenset[str] = frozenset({
     "he", "she", "her", "his", "him", "you", "your", "yours",
     "me", "my", "mine", "i", "we", "our", "ours", "us",
     "they", "them", "their", "theirs", "it", "its",
     "mother", "father", "son", "daughter", "husband", "wife",
     "brother", "sister", "child", "baby", "parent",
+    # In PRONOUN_GENERIC_LAST_TOKEN (resolution/pronoun_filter.py):
+    # add "mamma", "papa" (and informal variants, found via book 3322,
+    # East Lynne-era Victorian domestic fiction - not yet confirmed
+    # elsewhere, extend further only on a real future miss)
+    "mamma", "mama", "mom", "papa", "dad", "daddy",
 })
 
 # Irregular/archaic plural or spelling forms found in real corpus data
-# (day-5 audit) - "sonnes" is an archaic spelling this project's
-# specific Decameron translation uses; "children" is irregular (not
-# caught by stripping a trailing "s"). NOT exhaustive - same
-# discipline as the base list: extend from a real observed miss.
-_IRREGULAR_PLURAL_FORMS: frozenset[str] = frozenset({"children", "sonnes"})
-_ARCHAIC_PRONOUNS: frozenset[str] = frozenset({
+# - "sonne" (archaic singular spelling, this project's Decameron
+# translation), "children" (irregular plural, not caught by a
+# trailing-"s" strip).
+_IRREGULAR_FORMS: frozenset[str] = frozenset({"children", "sonne", "sonnes"})
+
+# Archaic second-person pronouns and verb forms found in real corpus
+# data (Decameron/Rhinegold - period or translated texts) - the base
+# list was seeded from modern-English examples and missed these.
+_ARCHAIC_FORMS: frozenset[str] = frozenset({
     "thee", "thou", "thy", "thine", "ye", "hath", "doth",
 })
-_ARCHAIC_KINSHIP_SPELLINGS: frozenset[str] = frozenset({"sonne"})
+
 
 def is_pronoun_generic(entity: str) -> bool:
     """True if `entity`'s final token matches a known bare-pronoun or
-    generic-noun pattern (singular or plural) - the singular form of
-    this pattern was found (day 4 audit) to explain 58% of confirmed
-    functional-step entity fragmentation.
+    generic-noun pattern (singular, plural, or archaic form).
 
     Matches on the LAST token so "her son" / "his mother" / "your
-    daughter" are all caught by one check, not a rule per phrasing. A
-    single-token entity ("mother", "her") is caught the same way -
-    the last token IS the whole string.
+    daughter" are all caught by one check. Regular plurals are caught
+    by stripping a single trailing "s" and re-checking against the
+    base list; irregular/archaic forms are listed explicitly.
 
-    Plural handling, added day 5 after real corpus data (Decameron,
-    King Arthur, Sons and Lovers) showed plural forms ("daughters",
-    "sonnes", "children") slipping through the original singular-only
-    check: irregular/archaic forms are listed explicitly;
-    regular plurals are caught by stripping a single trailing "s" and
-    re-checking. Deliberately conservative (bare "-s" strip only, one
-    pass, no deeper stemming) - can only false-positive on a real
-    character name that happens to be the plural-looking form of one
-    of these specific words (e.g. a character literally named "Sons")
-    - not observed in this corpus, same accepted-risk shape as the
-    base list itself.
+    Known, accepted false-positive risk: a real character literally
+    named with one of these words (e.g. "Son") would be wrongly
+    flagged. Not observed in this corpus.
     """
     tokens = entity.strip().lower().split()
     if not tokens:
         return False
     last = tokens[-1]
-    if last in PRONOUN_GENERIC_LAST_TOKEN or last in _IRREGULAR_PLURAL_FORMS or last in _ARCHAIC_PRONOUNS or last in _ARCHAIC_KINSHIP_SPELLINGS:
+    if last in PRONOUN_GENERIC_LAST_TOKEN or last in _IRREGULAR_FORMS or last in _ARCHAIC_FORMS:
         return True
     return last.endswith("s") and last[:-1] in PRONOUN_GENERIC_LAST_TOKEN
 
 
 def build_resolution_map(graph: nx.MultiDiGraph) -> dict[str, ResolutionEntry]:
-    """Scan every node in `graph` and return resolution_map entries
-    for nodes matching is_pronoun_generic(). Does NOT modify `graph`.
-
-    Returns:
-        raw_node_name -> ResolutionEntry, for flagged nodes only. A
-        node absent from the result is not flagged by THIS stage - it
-        may still be flagged by a later Week 8 stage this module has
-        no visibility into.
-    """
+    """Scan every node in `graph`, return ResolutionEntry for nodes
+    matching is_pronoun_generic(). Does NOT modify `graph`. A node
+    absent from the result is not flagged by THIS stage - it may
+    still be flagged by Stage A."""
     return {
         node: ResolutionEntry(
             raw_name=node,
@@ -135,18 +106,34 @@ def build_resolution_map(graph: nx.MultiDiGraph) -> dict[str, ResolutionEntry]:
     }
 
 
-def is_excluded_from_composition(entity, resolution_map):
+def is_excluded_from_composition(
+    entity: str, resolution_map: dict[str, ResolutionEntry]
+) -> bool:
+    """Whether multi-hop graph composition should refuse to continue
+    THROUGH `entity` as an intermediate node. Covers BOTH tiers whose
+    identity is genuinely unknown (pronoun/generic, and ambiguous
+    surface-variant candidates matching 2+ distinct longer names) -
+    SURFACE_VARIANT entries have a KNOWN identity and should be
+    redirected via resolve_canonical() instead, not excluded.
+
+    Single-hop retrieval is NOT affected - a raw fact stays fully
+    retrievable on its own. This check exists only for traversal/
+    composition logic deciding whether to extend a chain through this
+    node. Not yet wired into graph.traversal / retrieval.hybrid_search
+    - that integration is a separate, deliberate follow-up.
+    """
     entry = resolution_map.get(entity)
     return entry is not None and entry.tier in (
         ResolutionTier.EXCLUDED_PRONOUN_GENERIC,
         ResolutionTier.AMBIGUOUS_VARIANT_CANDIDATE,
     )
 
+
 def resolve_canonical(entity: str, resolution_map: dict[str, ResolutionEntry]) -> str:
     """Map a known surface-variant string to its canonical form.
-    Returns `entity` unchanged if it's not a surface-variant entry
-    (including pronoun/generic entries, which have no canonical
-    form - use is_excluded_from_composition for that case instead)."""
+    Returns `entity` unchanged if it's not a SURFACE_VARIANT entry
+    (including pronoun/generic and ambiguous entries, which have no
+    canonical form - use is_excluded_from_composition for those)."""
     entry = resolution_map.get(entity)
     if entry is not None and entry.tier == ResolutionTier.SURFACE_VARIANT and entry.canonical_form:
         return entry.canonical_form
