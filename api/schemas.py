@@ -30,7 +30,13 @@ class ChainFact(BaseModel):
     path: list[str]
     relations: list[str]
     directions: list[str]
-
+    answer: str | None = None
+    """The specific node this chain answers, after canonical-form
+    redirection via entity resolution (Week 8) - may differ from
+    path[-1] when the raw terminal node was a known surface-variant
+    alias of the true answer. None only if hybrid_search produced a
+    chain without this key (should not occur for the current version;
+    kept optional for backward compatibility)."""
 
 class QueryResponse(BaseModel):
     answer: str

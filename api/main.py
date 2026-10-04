@@ -19,6 +19,7 @@ from graph.corpus import load_corpus
 from retrieval.answer_generation import generate_answer
 from retrieval.direction_detection import estimate_hop_depth
 from retrieval.hybrid_search import hybrid_search
+from resolution.corpus_resolution import load_corpus_resolution
 
 DATA_DIR = Path("data")
 
@@ -33,6 +34,14 @@ async def lifespan(app: FastAPI):
     state["corpus"] = load_corpus(DATA_DIR / "graphs" / "corpus.pkl")
     state["collection"] = get_collection(path=str(DATA_DIR / "chroma"))
     state["model"] = load_embedding_model()
+    try:
+        state["resolution_maps"] = load_corpus_resolution(DATA_DIR / "resolution" / "corpus_resolution.pkl")
+        print(f"Loaded resolution maps for {len(state['resolution_maps'])} books.")
+    except FileNotFoundError:
+        print("WARNING: data/resolution/corpus_resolution.pkl not found - "
+              "rerun scripts/build_pipeline.py to generate it. Falling back to "
+              "no entity resolution for this session (pre-Week-8 behavior).")
+        state["resolution_maps"] = {}
 
     meta = pd.read_parquet(DATA_DIR / "arf_chunks_parsed.parquet", columns=["book_id", "title"])
     state["titles"] = meta.drop_duplicates("book_id").set_index("book_id")["title"].to_dict()
@@ -79,6 +88,7 @@ def query(req: QueryRequest):
     hits = hybrid_search(
         state["collection"], req.question, state["model"], state["corpus"],
         n_results=5, book_id=req.book_id, hop_depth=hop_depth,
+        resolution_maps=state["resolution_maps"],
     )
 
     sources = [
@@ -97,7 +107,8 @@ def query(req: QueryRequest):
             unique_sources.append(s)
 
     chains = [
-        ChainFact(path=c["path"], relations=c["relations"], directions=c["directions"])
+        ChainFact(path=c["path"], relations=c["relations"], directions=c["directions"],
+                  answer=c.get("answer"))
         for hit in hits for c in hit.chains
     ]
     seen_chains = set()

@@ -16,6 +16,7 @@ including the one real answer.
 import networkx as nx
 
 from graph.relation_ontology import SYMMETRIC_RELATIONS
+from resolution.pronoun_filter import is_excluded_from_composition
 
 
 def graph_n_hop_search(graph: nx.MultiDiGraph, entity_a: str, hops: int) -> set[str]:
@@ -89,6 +90,8 @@ def find_paths_up_to_hops(
     start_node: str,
     max_samples: int = 20,
     allowed_relations: set[str] | None = None,
+    resolution_map: dict | None = None,
+
 ) -> list[dict]:
     """Paths from start_node up to (and including) max_hops long -
     every depth along the way, not just exactly max_hops. For LIVE
@@ -102,11 +105,20 @@ def find_paths_up_to_hops(
             asked about, crowding out the genuinely relevant path
             before max_samples is even reached. None (default) means
             unconstrained.
+        resolution_map: if given, candidates whose identity is
+            unknown (pronoun/generic nodes, or surface-variant
+            matches ambiguous between 2+ names - see
+            resolution.pronoun_filter.is_excluded_from_composition)
+            are never traversed through or recorded as a path
+            endpoint. None (default): no filtering, existing callers
+            unaffected.
     """
+    resolution_map = resolution_map or {}
+
     paths = []
 
     def dfs(current, visited_nodes, visited_rels, visited_dirs, depth):
-        if depth > 0:
+        if depth > 0 and not is_excluded_from_composition(current, resolution_map):
             paths.append({
                 "start": visited_nodes[0], "end": current,
                 "path": visited_nodes + [current],
@@ -123,22 +135,23 @@ def find_paths_up_to_hops(
             for u, _, data in graph.in_edges(nbunch=[current], data=True)
             if data["relation"] in SYMMETRIC_RELATIONS
         ]
-        candidates = list(dict.fromkeys(candidates))  # collapse parallel multi-edges (same relation instance repeated)
+        candidates = list(dict.fromkeys(candidates))
         if allowed_relations is not None:
             candidates = [c for c in candidates if c[1] in allowed_relations]
+        # NOTE: candidates are NOT filtered by exclusion here anymore -
+        # traversal must still PASS THROUGH an excluded node to reach real
+        # nodes beyond it (e.g. anchor -> "her son" -> jermyn: "her son"
+        # must not be a reported endpoint, but blocking traversal through
+        # it entirely would also hide jermyn, who IS a real, reachable
+        # answer one hop further). Only the recording check above gates
+        # output; recursion continues through every candidate so depth
+        # budget is spent walking past noise, not stopped by it.
         for other, relation, direction in candidates:
             if other not in visited_nodes and len(paths) < max_samples:
                 dfs(other, visited_nodes + [current], visited_rels + [relation],
                     visited_dirs + [direction], depth + 1)
 
     dfs(start_node, [], [], [], 0)
-    # Path-level dedupe. The same (start, path, relations) chain can be
-    # emitted more than once when a node has parallel edges with the
-    # same relation, or when a symmetric edge is reachable via both its
-    # forward and reverse traversals. dict.fromkeys() above only
-    # collapses parallel edges at a single DFS step, not paths that
-    # converge. Dedupe here, after DFS, so the sample cap and traversal
-    # order are unchanged.
     seen: set[tuple] = set()
     deduped: list[dict] = []
     for p in paths:

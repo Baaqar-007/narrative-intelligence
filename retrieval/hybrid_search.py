@@ -17,6 +17,7 @@ from graph.relation_ontology import SYMMETRIC_RELATIONS
 from graph.traversal import find_paths_up_to_hops
 from retrieval.direction_detection import direction_match, entity_to_expand_from, mentioned_relations, target_relation
 from temporal.trajectory import get_relationships_between
+from resolution.pronoun_filter import is_excluded_from_composition, resolve_canonical, is_pronoun_generic
 # from retrieval.direction_detection import target_relation
 # print("Testing target_relation()")
 # print(target_relation("Who is the mother of Esther Lyon's husband?"))
@@ -51,6 +52,8 @@ def hybrid_search(
     n_results: int = 5,
     book_id: str | None = None,
     hop_depth: int = 0,
+    resolution_maps: dict[str, dict] | None = None,
+
 ) -> list[EnrichedHit]:
     """Run vector search, then enrich each hit with graph-verified facts.
 
@@ -65,6 +68,14 @@ def hybrid_search(
             is asking about, up to this many hops, filtered to
             mentioned_relations(query_text). Default 0 (disabled) -
             existing callers see identical behavior unless they opt in.
+        resolution_maps: book_id -> resolution_map, as produced by
+            resolution.corpus_resolution.build_corpus_resolution_maps.
+            None (default): no entity resolution applied, existing
+            callers/tests unaffected. When given, chain expansion
+            declines (returns no chains for that hit) if the query's
+            detected start entity has unknown identity, and a chain's
+            computed answer is redirected to its canonical form when
+            it resolves to a known surface-variant.
 
     Returns:
         A list of EnrichedHit, each fact annotated with whether it
@@ -91,6 +102,7 @@ def hybrid_search(
         graph = corpus.get(meta["book_id"])
         if graph is None:
             continue
+        resolution_map = (resolution_maps or {}).get(meta["book_id"], {})
 
         relationships = get_relationships_between(graph, meta["entity1"], meta["entity2"])
         for fact in relationships:
@@ -110,26 +122,14 @@ def hybrid_search(
                     effective_hop_depth = hop_depth + 1
                 raw_chains = find_paths_up_to_hops(
                     graph, max_hops=effective_hop_depth, start_node=expand_from,
-                    max_samples=20, allowed_relations=allowed,
+                    max_samples=20, allowed_relations=allowed, resolution_map=resolution_map,
                 )
                 for c in raw_chains:
-                    if c["relations"] and c["relations"][-1] == query_target_relation:
-                        answer = _terminal_answer(c)  # unchanged from day 2
-                        if answer not in (expand_from, other):
+                    if (c["relations"] and c["relations"][-1] == query_target_relation
+                            and not _is_redundant_continuation(c, raw_chains, query_target_relation)):
+                        answer = resolve_canonical(_terminal_answer(c), resolution_map)
+                        if answer not in (expand_from, other) and not is_pronoun_generic(answer):
                             chains.append({**c, "answer": answer})
-            # expand_from is None: query couldn't be confidently anchored to
-            # either entity - leave chains empty rather than expand from a
-            # guess. This is the deliberate reversion point from the
-            # dual-expansion spike (see day-2/day-3 log): dual expansion
-            # removed this gate but introduced an unresolved gap - chains
-            # could satisfy the terminal relation without respecting the
-            # query's relation SEQUENCE (e.g. a 1-hop "taug enemy_of X"
-            # answering a query that asks for "the enemy of taug's
-            # companion"). Single expansion doesn't have this gap, because
-            # starting from the query-direction-appropriate side inherently
-            # respects the established first relation. Revisit once the
-            # relation-sequence extractor (scoped, not built) exists.
-            
 
         enriched.append(EnrichedHit(
             query_match_text=doc,
@@ -142,6 +142,19 @@ def hybrid_search(
         ))
 
     return enriched
+
+def _is_redundant_continuation(chain: dict, all_chains: list[dict], target_relation: str) -> bool:
+    """True if some OTHER, shorter chain's full path is a strict
+    prefix of this chain's path, and that shorter chain already
+    satisfies target_relation - this chain is a longer walk past an
+    already-complete answer, not a second valid one."""
+    for other in all_chains:
+        if other is chain or len(other["path"]) >= len(chain["path"]):
+            continue
+        if (chain["path"][:len(other["path"])] == other["path"]
+                and other["relations"] and other["relations"][-1] == target_relation):
+            return True
+    return False
 
 # def _hop_bump(start_entity: str, matched_e1: str, matched_relation: str | None) -> int:
 #     """Whether the first hop re-treads the matched pair's own edge -
