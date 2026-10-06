@@ -43,6 +43,7 @@ def client():
     )
     main_module.state["model"] = FakeModel()
     main_module.state["titles"] = {"1": "Test Book"}
+    main_module.state["resolution_maps"] = {}  # day-9 addition; {} = no resolution applied, matches pre-Week-8 behavior
     return TestClient(main_module.app)
 
 

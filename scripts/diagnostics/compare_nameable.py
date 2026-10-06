@@ -16,6 +16,7 @@ is_nameable all importable from the live yardstick script - adjust
 the import path below to wherever that file actually lives on disk.
 """
 
+from operator import index
 import random
 import string
 from collections import Counter
@@ -26,7 +27,8 @@ import pandas as pd
 from embedding.embed_relations import load_embedding_model
 from graph.corpus import load_corpus
 from embedding.vector_store import get_collection
-from scripts.diagnostics.generate_positive_controls import (
+from scripts.diagnostics.common import output_path
+from scripts.diagnostics.yardstick import (
     generate, make_hybrid_adapter, score, build_index, STEPS, STEP_KEYS,
      walk, GENDERED, is_nameable, step, BOOKS, SEED, HOPS, CAP_PER_COMBO,
 )
@@ -65,7 +67,8 @@ def generate_with_nameable(graph, book_id, hops, cap, nameable_fn, enforce_purit
     anchors = sorted(n for n in graph.nodes if nameable_fn(n))
     combo_counts, out, excluded = Counter(), [], [0]
     for anchor in anchors:
-        for seq, gold in walk(index, anchor, [], {anchor}, hops, enforce_purity, excluded):
+        for seq, gold in walk(index, anchor, [], {anchor}, hops, STEP_KEYS, STEPS,
+                       enforce_purity, excluded):            
             label = " > ".join(f"{r}:{w}" for r, w in seq)
             if cap is not None and combo_counts[label] >= cap:
                 continue
@@ -110,12 +113,12 @@ def main():
     print("Generating OLD-is_nameable population (deterministic order, uncapped)...")
     before = run_population(BOOKS, corpus, adapter, HOPS, None,
                              generate_with_nameable, nameable_fn=is_nameable_old)
-    before.to_csv("yardstick_old_is_nameable.csv", index=False)
+    before.to_csv(output_path("yardstick_old_is_nameable.csv"), index=False)
 
     print("Generating CURRENT-is_nameable population (deterministic order, uncapped)...")
     after = run_population(BOOKS, corpus, adapter, HOPS, None,
                             generate_with_nameable, nameable_fn=is_nameable)
-    after.to_csv("yardstick_current_is_nameable.csv", index=False)
+    after.to_csv(output_path("yardstick_current_is_nameable.csv"), index=False)
 
     b = before.set_index(["book_id", "question"])
     a = after.set_index(["book_id", "question"])

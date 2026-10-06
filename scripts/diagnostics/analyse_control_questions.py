@@ -1,9 +1,14 @@
 import pandas as pd
 from retrieval.direction_detection import estimate_hop_depth, target_relation
-from ..diagnostics.generate_positive_controls import build_index, step
+from scripts.diagnostics.common import build_index, step, output_path
 from pathlib import Path
 
-df = pd.read_csv("yardstick_results.csv", encoding="cp1252")
+
+df = pd.read_csv(output_path("yardstick_results.csv"), encoding="cp1252")
+# cp1252, not utf-8: yardstick CSVs contain non-ASCII names from
+# translated-corpus books (Rhinegold's "brünnhilde", etc.) - confirm
+# this is still the right encoding if the yardstick's write-side
+# encoding ever changes.
 seqs = df.sequence.str.split(" > ").apply(lambda s: [x.split(":")[0] for x in s])
 targ = df.question.map(target_relation)
 

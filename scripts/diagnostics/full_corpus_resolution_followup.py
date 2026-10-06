@@ -16,35 +16,11 @@ from pathlib import Path
 
 from graph.corpus import load_corpus
 from resolution.resolve import build_full_resolution_map, is_nameable
+from scripts.diagnostics.common import build_index, step, output_path
 
 DATA_DIR = Path("data")
 FUNCTIONAL_STEPS = {("parent_father_of", "e1"), ("parent_mother_of", "e1")}
 SPOT_CHECK_BOOK = "3322"
-
-
-def build_index(graph):
-    out_, in_ = defaultdict(lambda: defaultdict(set)), defaultdict(lambda: defaultdict(set))
-    for u, v, d in graph.edges(data=True):
-        rel = d.get("relation")
-        if rel:
-            out_[rel][u].add(v)
-            in_[rel][v].add(u)
-    return out_, in_
-
-
-def step(index_out, index_in, node, relation, want):
-    e1s = index_in[relation].get(node, set())
-    e2s = index_out[relation].get(node, set())
-    return set(e1s) if want == "e1" else set(e2s) if want == "e2" else e1s | e2s
-
-
-def token_overlap(frontier):
-    if len(frontier) <= 1:
-        return True
-    longest = max(frontier, key=len)
-    long_tokens = set(longest.split())
-    return all(set(s.split()) & long_tokens for s in frontier if s != longest)
-
 
 def main():
     corpus = load_corpus(DATA_DIR / "graphs" / "corpus.pkl")
@@ -107,6 +83,14 @@ def main():
           f"({still_multi/total_contaminated:.1%})")
     print(f"  unchanged (no improvement):    {unchanged_or_worse} "
           f"({unchanged_or_worse/total_contaminated:.1%})")
+    import pandas as pd
+    pd.DataFrame([{
+        "total_contaminated": total_contaminated,
+        "resolved_to_single": resolved_to_single,
+        "still_multi": still_multi,
+        "unchanged_or_worse": unchanged_or_worse,
+    }]).to_csv(output_path("resolution_before_after_summary.csv"), index=False)
+    print(f"\nWritten to {output_path('resolution_before_after_summary.csv')}")
 
 
 if __name__ == "__main__":

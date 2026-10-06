@@ -15,8 +15,8 @@ end of day 6, not another standalone reimplementation.
 from pathlib import Path
 
 from graph.corpus import load_corpus
-from resolution.pronoun_filter import build_resolution_map
-from resolution.surface_variant_merge import build_surface_variant_map
+from resolution.resolve import build_full_resolution_map
+
 
 DATA_DIR = Path("data")
 BOOKS = {"40882": "Felix Holt", "106": "Tarzan", "12753": "King Arthur",
@@ -54,10 +54,9 @@ def main():
         graph = corpus.get(book_id)
         if graph is None:
             continue
-        pronoun_map = build_resolution_map(graph)
-        surface_map = build_surface_variant_map(graph, pronoun_generic_map=pronoun_map)
-        all_maps[label] = surface_map
-        print(f"{label}: {len(surface_map)} nodes merged into variant clusters")
+        resolution_map = build_full_resolution_map(graph)
+        all_maps[label] = resolution_map
+        print(f"{label}: {len(resolution_map)} nodes merged into variant clusters")
 
     print("\n-- known-correct clusters: still correct? --")
     for label, clusters in EXPECTED_CLUSTERS.items():

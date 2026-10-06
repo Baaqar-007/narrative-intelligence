@@ -161,11 +161,18 @@ class TestEntityToExpandFrom:
         result = entity_to_expand_from("Who protects Taug?", "Taug", "Teeka", "protector_of")
         assert result == "Taug"
 
-    def test_undetermined_falls_back_to_entity2(self):
-        """Preserves the original pre-Week-7 default when direction
-        genuinely can't be determined - not a regression."""
+    def test_undetermined_returns_none_not_entity2_fallback(self):
+        """Day 1: entity_to_expand_from was made strict - undetermined
+        direction must return None, not silently fall back to entity2.
+        The old fallback was the root cause of a real bug (Esther Lyon
+        wrong-chain, day 1/2): direction detection failed, fell through
+        to entity2, and entity2 happened to belong to an unrelated fact.
+        Declining is the correct behavior, not a regression to guard
+        against - this test previously asserted the OPPOSITE (the old,
+        now-removed fallback) and needs to be read as superseded, not
+        reverted to."""
         result = entity_to_expand_from("What is the weather?", "Taug", "Teeka", "protector_of")
-        assert result == "Teeka"
+        assert result is None
 
 
 class TestEstimateHopDepth:

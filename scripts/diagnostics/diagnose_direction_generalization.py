@@ -31,6 +31,8 @@ import csv
 import re
 from collections import defaultdict
 from pathlib import Path
+from scripts.diagnostics.common import output_path
+
 
 from embedding.relation_text import MANUAL_TEMPLATES, get_anchor_phrase
 from graph.corpus import load_corpus
@@ -212,7 +214,7 @@ def run_book(book_id: str, label: str, corpus, writer):
 
 def main():
     corpus = load_corpus(DATA_DIR / "graphs" / "corpus.pkl")
-    with open("direction_generalization.csv", "w", newline="") as f:
+    with open(output_path("direction_generalization.csv"), "w", newline="") as f:
         fieldnames = ["book", "book_id", "relation", "question", "axis", "kind",
                       "expand_from", "target_relation", "resolved", "failure_bucket"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -224,8 +226,7 @@ def main():
         if s:
             print(f"  {s['book']}: {s['resolved']}/{s['total']} = {s['rate']:.1%}"
                   f"  ({s['new_failures']} new-family failures)")
-    print("\nWritten to direction_generalization.csv")
-
+    print(f"\nWritten to {output_path('direction_generalization.csv')}")
 
 if __name__ == "__main__":
     main()

@@ -16,7 +16,7 @@ import pandas as pd
 from embedding.embed_relations import load_embedding_model
 from graph.corpus import load_corpus
 from embedding.vector_store import get_collection
-from scripts.diagnostics.generate_positive_controls import SEED, HOPS, CAP_PER_COMBO, generate, make_hybrid_adapter, score, BOOKS
+from scripts.diagnostics.yardstick import SEED, HOPS, CAP_PER_COMBO, generate, make_hybrid_adapter, score, BOOKS
 
 DATA_DIR = Path("data")
 

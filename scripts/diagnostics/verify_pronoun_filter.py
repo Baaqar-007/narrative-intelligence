@@ -11,10 +11,11 @@ from pathlib import Path
 
 from graph.corpus import load_corpus
 from resolution.pronoun_filter import build_resolution_map
-from scripts.diagnostics.generate_positive_controls import (
+from scripts.diagnostics.yardstick import (
     build_index, STEP_KEYS, step, is_nameable
 )
-from scripts.diagnostics.diagnose_hops import FUNCTIONAL_STEPS, token_overlap
+from scripts.diagnostics.full_corpus_resolution import FUNCTIONAL_STEPS
+from scripts.diagnostics.common import token_overlap, output_path
 
 DATA_DIR = Path("data")
 BOOKS = {"40882": "Felix Holt", "106": "Tarzan", "12753": "King Arthur",
@@ -63,6 +64,10 @@ def main():
     print(f"\nDo NOT look like surface variants (Stage B/C territory, or unexplained): {len(other)}")
     for r in other:
         print(f"  {r['book']}: {r['anchor']} -{r['relation']}-> {r['clean_frontier']}")
+    
+    import pandas as pd
+    pd.DataFrame(all_rows).to_csv(output_path("pronoun_filter_verification.csv"), index=False)
+    print(f"\nWritten to {output_path('pronoun_filter_verification.csv')}")
 
 
 if __name__ == "__main__":

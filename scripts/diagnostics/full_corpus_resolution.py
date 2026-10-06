@@ -1,84 +1,76 @@
-# scripts/diagnostics/full_corpus_resolution_audit.py
-"""Full 96-book run of Module A's functional-step contamination
-measurement, through the CONSOLIDATED resolution package (not
-hand-reconstructed per-script - the day-5/6/7 lesson). Reuses the
-exact FUNCTIONAL_STEPS definition and category split (pronoun_generic
-vs surface_variant vs unrelated) from the 6-book version, so results
-are directly comparable to the day-4/7 numbers, not a new metric.
+# scripts/diagnostics/full_corpus_resolution.py
+"""Full 96-book functional-step contamination audit, through the
+consolidated resolution package - plus the non-functional
+classification, Stage C evidence dump, and worst-example report from
+the earlier 6-book diagnose_hops.py (archived day 11; these three
+pieces were NOT superseded by this script's original functional-only
+scope, so merged in here rather than lost).
 
-Answers the day-6 ponder directly: does the hand-seeded pronoun list
-and the honorific-stripping logic, validated against 6 books, hold up
-across the other 90 - or does contamination/category-mix look
-meaningfully different at scale, signaling the hand list needs
-another real-data-driven extension round (same spirit as the
-plural/archaic-form fixes already made).
+Uses resolution.resolve.is_nameable / resolution.pronoun_filter.
+is_pronoun_generic directly - NOT a local re-derivation. This is the
+exact fix for the bug class that made diagnose_hops.py stale in the
+first place (its own local PRONOUN_GENERIC_LAST_TOKEN list never
+received the day-5/8 mamma/papa/judicial-title extensions that the
+live resolution module did).
 """
 
 from collections import defaultdict
 from pathlib import Path
 
+import pandas as pd
+
 from graph.corpus import load_corpus
-from resolution.resolve import build_full_resolution_map, is_nameable
-from resolution.surface_variant_merge import core_tokens
+from resolution.resolve import is_nameable
+from resolution.pronoun_filter import is_pronoun_generic
+from scripts.diagnostics.common import build_index, step, token_overlap, output_path
+from scripts.diagnostics.yardstick import STEP_KEYS
 
 DATA_DIR = Path("data")
 FUNCTIONAL_STEPS = {("parent_father_of", "e1"), ("parent_mother_of", "e1")}
 
 
-def token_overlap(frontier: set[str]) -> bool:
-    if len(frontier) <= 1:
-        return True
-    longest = max(frontier, key=len)
-    long_tokens = set(longest.split())
-    return all(set(s.split()) & long_tokens for s in frontier if s != longest)
-
-
-def is_pronoun_generic_frontier(frontier: set[str]) -> bool:
-    from resolution.pronoun_filter import is_pronoun_generic
-    return any(is_pronoun_generic(f) for f in frontier)
-
-
 def classify_frontier(frontier: set[str]) -> str:
     if len(frontier) <= 1:
         return "pure"
-    if is_pronoun_generic_frontier(frontier):
+    if any(is_pronoun_generic(f) for f in frontier):
         return "pronoun_generic"
     if token_overlap(frontier):
         return "surface_variant"
     return "unrelated"
 
 
-def step(index_out, index_in, node, relation, want):
-    e1s = index_in[relation].get(node, set())
-    e2s = index_out[relation].get(node, set())
-    return set(e1s) if want == "e1" else set(e2s) if want == "e2" else e1s | e2s
-
-
-def build_index(graph):
-    out_, in_ = defaultdict(lambda: defaultdict(set)), defaultdict(lambda: defaultdict(set))
-    for u, v, d in graph.edges(data=True):
-        rel = d.get("relation")
-        if rel:
-            out_[rel][u].add(v)
-            in_[rel][v].add(u)
-    return out_, in_
-
-
 def audit_book(graph, book_id):
-    index_out, index_in = build_index(graph)
+    index = build_index(graph)
     rows = []
     for anchor in graph.nodes:
         if not is_nameable(anchor):
             continue
-        for relation, role in FUNCTIONAL_STEPS:
-            frontier = step(index_out, index_in, anchor, relation, role)
+        for relation, role in STEP_KEYS:
+            frontier = step(index, anchor, relation, role)
             if not frontier:
                 continue
             rows.append({
-                "book_id": book_id, "anchor": anchor, "relation": relation,
-                "frontier_size": len(frontier), "category": classify_frontier(frontier),
+                "book_id": book_id, "anchor": anchor, "relation": relation, "role": role,
+                "functional": (relation, role) in FUNCTIONAL_STEPS,
+                "frontier_size": len(frontier),
+                "category": classify_frontier(frontier),
+                "frontier": frontier,
             })
     return rows
+
+
+def report(rows, title):
+    total = len(rows)
+    if total == 0:
+        print(f"\n({title}: no rows)")
+        return
+    cats = defaultdict(int)
+    for r in rows:
+        cats[r["category"]] += 1
+    print(f"\n-- {title} (n={total}) --")
+    for cat in ("pure", "pronoun_generic", "surface_variant", "unrelated"):
+        n = cats.get(cat, 0)
+        print(f"  {cat:<18} {n:>5}  ({n/total:.1%})")
 
 
 def main():
@@ -91,37 +83,44 @@ def main():
             continue
         all_rows.extend(audit_book(graph, book_id))
 
-    print(f"Books processed: {len(corpus) - len(skipped)}, skipped (empty/None): {len(skipped)}")
+    books_checked = len(corpus) - len(skipped)
+    print(f"Books processed: {books_checked}, skipped (empty/None): {len(skipped)}")
     if skipped:
         print(f"  skipped book_ids: {skipped}")
 
-    total = len(all_rows)
-    contaminated = [r for r in all_rows if r["category"] != "pure"]
-    print(f"\nTotal functional-step frontiers checked: {total}")
-    print(f"Contaminated: {len(contaminated)} ({len(contaminated)/total:.1%})")
+    functional_rows = [r for r in all_rows if r["functional"]]
+    nonfunctional_rows = [r for r in all_rows if not r["functional"]]
 
-    cat_counts = defaultdict(int)
-    for r in contaminated:
-        cat_counts[r["category"]] += 1
-    for cat in ("pronoun_generic", "surface_variant", "unrelated"):
-        n = cat_counts.get(cat, 0)
-        pct_of_contaminated = n / len(contaminated) if contaminated else 0
-        print(f"  {cat:<18} {n:>5}  ({pct_of_contaminated:.1%} of contaminated)")
+    report(functional_rows, "FUNCTIONAL steps (e1 of parent_father_of/parent_mother_of) - "
+                              "frontier_size>1 is unambiguously a problem - full 96-book scale")
+    report(nonfunctional_rows, "NON-FUNCTIONAL steps - multi-valued frontiers may be legitimate")
 
-    print("\n-- per-book contamination rate (top 10 highest, for spot-check candidates) --")
+    print("\n-- functional-step contamination by book (top 10 highest, n>=5) --")
     by_book = defaultdict(list)
-    for r in all_rows:
+    for r in functional_rows:
         by_book[r["book_id"]].append(r)
     rates = []
     for book_id, rows in by_book.items():
         bad = sum(1 for r in rows if r["category"] != "pure")
-        if len(rows) >= 5:  # skip tiny-sample books, not meaningful
+        if len(rows) >= 5:
             rates.append((book_id, bad, len(rows), bad / len(rows)))
     for book_id, bad, n, rate in sorted(rates, key=lambda x: -x[3])[:10]:
         print(f"  {book_id:<10} {bad}/{n} = {rate:.1%}")
 
-    print(f"\nBooks with 0 functional-step frontiers at all (too sparse to measure): "
-          f"{sum(1 for b, rows in by_book.items() if len(rows) == 0)}")
+    print("\n-- worst functional-step examples by frontier size (manual spot-check) --")
+    worst = sorted((r for r in functional_rows if r["category"] != "pure"),
+                   key=lambda r: -r["frontier_size"])
+    for r in worst[:10]:
+        print(f"  [{r['book_id']}] {r['anchor']} -{r['relation']}:{r['role']}-> "
+              f"[{r['category']}] {r['frontier']}")
+
+    print("\n-- pronoun_generic examples, non-functional steps (Stage C / Week 8 evidence) --")
+    pg = [r for r in nonfunctional_rows if r["category"] == "pronoun_generic"][:8]
+    for r in pg:
+        print(f"  [{r['book_id']}] {r['anchor']} -{r['relation']}:{r['role']}-> {r['frontier']}")
+
+    pd.DataFrame(all_rows).to_csv(output_path("full_corpus_resolution_audit.csv"), index=False)
+    print(f"\nWritten to {output_path('full_corpus_resolution_audit.csv')}")
 
 
 if __name__ == "__main__":
