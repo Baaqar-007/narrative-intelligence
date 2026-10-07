@@ -92,10 +92,10 @@ def knight_graph() -> nx.MultiDiGraph:
 def single_hit_collection() -> FakeCollection:
     return FakeCollection(
         documents=["knight is a friend of squire"],
-        metadatas=[{"book_id": "1", "entity1": "knight", "entity2": "squire"}],
+        metadatas=[{"book_id": "1", "entity1": "knight", "entity2": "squire",
+                    "relation": "friend_of"}],
         distances=[0.1],
     )
-
 
 class TestHopDepthDefaultIsANoOp:
     """The core safety requirement from Week 7: hop_depth=0 (default)
@@ -159,16 +159,33 @@ class TestHopDepthEnabled:
         ends = {c["end"] for c in hits[0].chains}
         assert "lord" in ends
 
-    def test_redundant_path_back_to_entity1_is_filtered(self, single_hit_collection):
+    def test_redundant_path_back_to_entity1_is_filtered(self):
         """squire always has a path back to knight (that's why they were
         matched as a pair) - already covered by all_relationships, must
-        not be duplicated in chains."""
+        not be duplicated in chains.
+
+        Does NOT use the single_hit_collection fixture - that fixture's
+        metadata says relation="friend_of", but this test's graph uses
+        companion_of for the knight/squire edge. entity_to_expand_from
+        needs the query text to actually contain the matched relation's
+        anchor phrase; a mismatched relation in metadata silently breaks
+        direction detection regardless of what the graph or query contain
+        on their own (found via three successive failed guesses - the
+        actual fix needed the collection's metadata and the query text
+        and the graph's edge relation all to agree, not just two of the
+        three)."""
         g = nx.MultiDiGraph()
-        g.add_edge("knight", "squire", relation="companion_of", chunk_id="1")  # symmetric - reverse-reachable
+        g.add_edge("knight", "squire", relation="companion_of", chunk_id="1")
         g.add_edge("squire", "lord", relation="protector_of", chunk_id="2")
         corpus = {"1": g}
-        hits = hybrid_search(single_hit_collection, "q", FakeModel(), corpus,
-                              n_results=1, hop_depth=2)
+        collection = FakeCollection(
+            documents=["knight is a companion of squire"],
+            metadatas=[{"book_id": "1", "entity1": "knight", "entity2": "squire",
+                        "relation": "companion_of"}],
+            distances=[0.1],
+        )
+        hits = hybrid_search(collection, "who protects the companion of the knight?",
+                            FakeModel(), corpus, n_results=1, hop_depth=2)
         ends = {c["end"] for c in hits[0].chains}
         assert "knight" not in ends
         assert "lord" in ends

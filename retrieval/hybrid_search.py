@@ -18,11 +18,6 @@ from graph.traversal import find_paths_up_to_hops
 from retrieval.direction_detection import direction_match, entity_to_expand_from, mentioned_relations, target_relation
 from temporal.trajectory import get_relationships_between
 from resolution.pronoun_filter import is_excluded_from_composition, resolve_canonical, is_pronoun_generic
-# from retrieval.direction_detection import target_relation
-# print("Testing target_relation()")
-# print(target_relation("Who is the mother of Esther Lyon's husband?"))
-# print(target_relation("Who is the mother of Rufus Lyon's daughter's husband?"))
-# print(target_relation("Who is the enemy of the companion of taug?"))
 
 @dataclass
 class EnrichedHit:
@@ -117,19 +112,37 @@ def hybrid_search(
             if expand_from is not None:
                 other = meta["entity2"] if expand_from == meta["entity1"] else meta["entity1"]
                 allowed = mentioned_relations(query_text)
-                effective_hop_depth = hop_depth
-                if expand_from == meta["entity1"] or matched_relation in SYMMETRIC_RELATIONS:
-                    effective_hop_depth = hop_depth + 1
+                effective_hop_depth = _effective_hop_depth(
+                    expand_from, meta["entity1"], matched_relation, hop_depth,
+                )
                 raw_chains = find_paths_up_to_hops(
                     graph, max_hops=effective_hop_depth, start_node=expand_from,
                     max_samples=20, allowed_relations=allowed, resolution_map=resolution_map,
                 )
                 for c in raw_chains:
-                    if (c["relations"] and c["relations"][-1] == query_target_relation
-                            and not _is_redundant_continuation(c, raw_chains, query_target_relation)):
-                        answer = resolve_canonical(_terminal_answer(c), resolution_map)
-                        if answer not in (expand_from, other) and not is_pronoun_generic(answer):
-                            chains.append({**c, "answer": answer})
+                    if not (c["relations"] and c["relations"][-1] == query_target_relation):
+                        continue
+                    if _is_redundant_continuation(c, raw_chains, query_target_relation):
+                        continue
+                    answer = resolve_canonical(_terminal_answer(c), resolution_map)
+                    if is_pronoun_generic(answer):
+                        continue
+                    # Only a PURE single-hop chain (2 nodes: expand_from
+                    # -> answer directly) can be "just restating the
+                    # already-known matched fact" - that's the only
+                    # case where answer coinciding with expand_from/
+                    # other is actually meaningless. For longer chains,
+                    # the terminal answer coinciding with one of those
+                    # nodes is not necessarily a restatement - it can
+                    # be a genuine multi-hop answer that happens to
+                    # pass through or land on one of them (day 11:
+                    # "squire" is BOTH the matched pair's `other` AND
+                    # the correct 2-hop answer to "who protects the
+                    # friend of the knight" - excluding by identity
+                    # alone silently dropped the real answer).
+                    if len(c["path"]) == 2 and answer in (expand_from, other):
+                        continue
+                    chains.append({**c, "answer": answer})
 
         enriched.append(EnrichedHit(
             query_match_text=doc,
@@ -156,15 +169,20 @@ def _is_redundant_continuation(chain: dict, all_chains: list[dict], target_relat
             return True
     return False
 
-# def _hop_bump(start_entity: str, matched_e1: str, matched_relation: str | None) -> int:
-#     """Whether the first hop re-treads the matched pair's own edge -
-#     always true starting from entity1 (that's the edge's direction),
-#     true starting from entity2 only if the relation is symmetric
-#     (same edge, reachable either way). Generalizes the original
-#     single-expand_from bump condition to either starting entity."""
-#     if start_entity == matched_e1:
-#         return 1
-#     return 1 if matched_relation in SYMMETRIC_RELATIONS else 0
+def _effective_hop_depth(expand_from: str, matched_e1: str, matched_relation: str | None,
+                          hop_depth: int) -> int:
+    """Whether the first hop re-treads the matched pair's own edge -
+    always true starting from entity1 (that's the edge's direction),
+    true starting from entity2 only if the relation is symmetric
+    (same edge, reachable either way). Extracted as a named function
+    (day 12) specifically so diagnostic scripts can call the EXACT
+    same logic hybrid_search uses, rather than reconstructing it
+    separately and risking drift (the day-9 Esther harness bug: a
+    diagnostic hardcoded max_hops=1 instead of this computation,
+    silently testing a different depth than the live pipeline)."""
+    if expand_from == matched_e1 or matched_relation in SYMMETRIC_RELATIONS:
+        return hop_depth + 1
+    return hop_depth
 
 def _terminal_answer(chain: dict) -> str:
     """The node the query is actually asking for, from the terminal
@@ -191,30 +209,3 @@ def _terminal_answer(chain: dict) -> str:
     if chain["directions"][-1] == "forward":
         return chain["path"][-2]
     return chain["path"][-1]
-
-
-def _expand_from_entity(graph, start, other, hop_depth, query_target_relation, allowed):
-    raw_chains = find_paths_up_to_hops(
-        graph, max_hops=hop_depth, start_node=start,
-        max_samples=20, allowed_relations=allowed,
-    )
-    chains = []
-    for c in raw_chains:
-        if query_target_relation is None or c["relations"][-1] != query_target_relation:
-            continue
-        answer = _terminal_answer(c)
-        if answer in (start, other):
-            # answer == other: just restates the originally-matched
-            # fact, already covered by all_relationships.
-            # answer == start: the chain's terminal edge resolves back
-            # to the anchor entity itself (e.g. a direct, possibly
-            # contradictory taug-enemy_of->tarzan edge evaluated from
-            # taug's own side) - not a real answer to a question about
-            # that entity. Both cases are "not new information," for
-            # different reasons - conflating them under one check
-            # (checking only `answer == other`, or only `end`) is what
-            # broke last turn; both need checking explicitly.
-            continue
-        chains.append({**c, "answer": answer})
-    return chains
-        

@@ -38,7 +38,8 @@ def client():
     main_module.state["corpus"] = {"1": g}
     main_module.state["collection"] = FakeCollection(
         documents=["knight is a friend of squire"],
-        metadatas=[{"book_id": "1", "entity1": "knight", "entity2": "squire"}],
+        metadatas=[{"book_id": "1", "entity1": "knight", "entity2": "squire",
+                    "relation": "friend_of"}],
         distances=[0.1],
     )
     main_module.state["model"] = FakeModel()

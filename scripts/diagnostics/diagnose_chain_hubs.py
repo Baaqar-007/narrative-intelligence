@@ -46,7 +46,49 @@ TEST_QUESTIONS = [
 # problem is the traversal itself, not something specific to
 # high-degree Felix Holt characters.
 POSITIVE_CONTROL = ("Who is the enemy of the companion of taug?", "106")
+from retrieval.hybrid_search import _effective_hop_depth
+from retrieval.direction_detection import entity_to_expand_from, mentioned_relations, target_relation
+from graph.traversal import find_paths_up_to_hops
 
+
+def inspect_raw_chains(question: str, book_id: str, corpus, resolution_maps=None) -> None:
+    """Dumps raw_chains at the EXACT depth hybrid_search would use for
+    this question - reuses _effective_hop_depth and
+    entity_to_expand_from directly rather than recomputing depth
+    separately (day-9 bug: an earlier version of this hardcoded
+    max_hops=1, silently testing a shallower search than the live
+    pipeline actually runs, making any conclusion about this question
+    unreliable until fixed)."""
+    from retrieval.hybrid_search import hybrid_search
+    from embedding.vector_store import get_collection
+    from embedding.embed_relations import load_embedding_model
+
+    graph = corpus.get(book_id)
+    q_target = target_relation(question)
+    allowed = mentioned_relations(question)
+    hop_depth = estimate_hop_depth(question)
+    resolution_map = (resolution_maps or {}).get(book_id, {})
+
+    collection = get_collection(path=str(DATA_DIR / "chroma"))
+    model = load_embedding_model()
+    hits = hybrid_search(collection, question, model, corpus, n_results=5,
+                          book_id=book_id, hop_depth=hop_depth, resolution_maps=resolution_maps)
+
+    print(f"\n[{question}]  target_relation={q_target}  allowed={allowed}")
+    for h in hits:
+        print(f"  matched pair: ({h.entity1!r}, {h.entity2!r})")
+        for start in (h.entity1, h.entity2):
+            expand_from = entity_to_expand_from(question, h.entity1, h.entity2,
+                                                  h.all_relationships[0]["relation"] if h.all_relationships else "")
+            matched_relation = h.all_relationships[0]["relation"] if h.all_relationships else None
+            effective_depth = _effective_hop_depth(start, h.entity1, matched_relation, hop_depth)
+            raw = find_paths_up_to_hops(graph, max_hops=effective_depth, start_node=start,
+                                         max_samples=20, allowed_relations=allowed,
+                                         resolution_map=resolution_map)
+            for c in raw:
+                is_terminal = c["relations"] and c["relations"][-1] == q_target
+                print(f"  from={start!r} hop={len(c['path'])-1}  {c['path']}  "
+                      f"rels={c['relations']}  terminal_match={is_terminal}")
 
 def inspect_question(question, book_id, corpus, collection, model, resolution_maps=None):
     hop_depth = estimate_hop_depth(question)
@@ -98,7 +140,8 @@ def main():
         g = corpus.get(bid)
         if g is not None:
             resolution_maps[bid] = build_full_resolution_map(g)
-    
+    # In main(), after the resolution_maps are built:
+    inspect_raw_chains("Who is the mother of Esther Lyon's husband?", BOOK_ID_MAIN, corpus, resolution_maps)
     all_rows = []
     for q in TEST_QUESTIONS:
         rows = inspect_question(q, BOOK_ID_MAIN, corpus, collection, model, resolution_maps=resolution_maps)
