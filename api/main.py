@@ -24,7 +24,8 @@ from resolution.corpus_resolution import load_corpus_resolution
 DATA_DIR = Path("data")
 
 state: dict = {}
-
+# module level, next to DATA_DIR
+USE_RESOLUTION = False  # A/B (old traversal): WRONG 13.4% -> 19.3% with maps on. Traversal fix applied since, unmeasured. Flip only after a paired run shows no regression.
 
 import pandas as pd
 
@@ -34,14 +35,14 @@ async def lifespan(app: FastAPI):
     state["corpus"] = load_corpus(DATA_DIR / "graphs" / "corpus.pkl")
     state["collection"] = get_collection(path=str(DATA_DIR / "chroma"))
     state["model"] = load_embedding_model()
-    try:
-        state["resolution_maps"] = load_corpus_resolution(DATA_DIR / "resolution" / "corpus_resolution.pkl")
-        print(f"Loaded resolution maps for {len(state['resolution_maps'])} books.")
-    except FileNotFoundError:
-        print("WARNING: data/resolution/corpus_resolution.pkl not found - "
-              "rerun scripts/build_pipeline.py to generate it. Falling back to "
-              "no entity resolution for this session (pre-Week-8 behavior).")
-        state["resolution_maps"] = {}
+
+    state["resolution_maps"] = {}
+    if USE_RESOLUTION:
+        try:
+            state["resolution_maps"] = load_corpus_resolution(DATA_DIR / "resolution" / "corpus_resolution.pkl")
+            print(f"Loaded resolution maps for {len(state['resolution_maps'])} books.")
+        except FileNotFoundError:
+            print("WARNING: corpus_resolution.pkl not found; running without entity resolution.")
 
     meta = pd.read_parquet(DATA_DIR / "arf_chunks_parsed.parquet", columns=["book_id", "title"])
     state["titles"] = meta.drop_duplicates("book_id").set_index("book_id")["title"].to_dict()

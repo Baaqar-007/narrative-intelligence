@@ -16,8 +16,6 @@ including the one real answer.
 import networkx as nx
 
 from graph.relation_ontology import SYMMETRIC_RELATIONS
-from resolution.pronoun_filter import is_excluded_from_composition
-
 
 def graph_n_hop_search(graph: nx.MultiDiGraph, entity_a: str, hops: int) -> set[str]:
     """All entities reachable from entity_a within `hops` steps.
@@ -118,7 +116,7 @@ def find_paths_up_to_hops(
     paths = []
 
     def dfs(current, visited_nodes, visited_rels, visited_dirs, depth):
-        if depth > 0 and not is_excluded_from_composition(current, resolution_map):
+        if depth > 0:
             paths.append({
                 "start": visited_nodes[0], "end": current,
                 "path": visited_nodes + [current],

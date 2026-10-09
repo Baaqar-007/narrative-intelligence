@@ -17,13 +17,10 @@ from graph.relation_ontology import SYMMETRIC_RELATIONS
 from graph.traversal import find_paths_up_to_hops
 from retrieval.direction_detection import direction_match, entity_to_expand_from, mentioned_relations, target_relation
 from temporal.trajectory import get_relationships_between
-from resolution.pronoun_filter import is_excluded_from_composition, resolve_canonical, is_pronoun_generic
+from resolution.pronoun_filter import resolve_canonical, is_pronoun_generic
 
 @dataclass
 class EnrichedHit:
-    """A vector search hit, enriched with the full graph-verified
-    relationship picture for its entity pair, and optionally a set of
-    further reachable facts beyond that pair (see `chains`)."""
 
     query_match_text: str
     distance: float
@@ -32,11 +29,7 @@ class EnrichedHit:
     entity2: str
     all_relationships: list[dict]
     chains: list[dict] = field(default_factory=list)
-    """Paths reachable from whichever entity the query is asking
-    about, up to `hop_depth` hops, filtered to relation types the
-    query actually mentioned. Empty unless hop_depth > 0. Excludes
-    any path leading back to the other entity in the matched pair -
-    already covered by all_relationships."""
+    
 
 
 def hybrid_search(
@@ -63,14 +56,6 @@ def hybrid_search(
             is asking about, up to this many hops, filtered to
             mentioned_relations(query_text). Default 0 (disabled) -
             existing callers see identical behavior unless they opt in.
-        resolution_maps: book_id -> resolution_map, as produced by
-            resolution.corpus_resolution.build_corpus_resolution_maps.
-            None (default): no entity resolution applied, existing
-            callers/tests unaffected. When given, chain expansion
-            declines (returns no chains for that hit) if the query's
-            detected start entity has unknown identity, and a chain's
-            computed answer is redirected to its canonical form when
-            it resolves to a known surface-variant.
 
     Returns:
         A list of EnrichedHit, each fact annotated with whether it
@@ -119,30 +104,7 @@ def hybrid_search(
                     graph, max_hops=effective_hop_depth, start_node=expand_from,
                     max_samples=20, allowed_relations=allowed, resolution_map=resolution_map,
                 )
-                for c in raw_chains:
-                    if not (c["relations"] and c["relations"][-1] == query_target_relation):
-                        continue
-                    if _is_redundant_continuation(c, raw_chains, query_target_relation):
-                        continue
-                    answer = resolve_canonical(_terminal_answer(c), resolution_map)
-                    if is_pronoun_generic(answer):
-                        continue
-                    # Only a PURE single-hop chain (2 nodes: expand_from
-                    # -> answer directly) can be "just restating the
-                    # already-known matched fact" - that's the only
-                    # case where answer coinciding with expand_from/
-                    # other is actually meaningless. For longer chains,
-                    # the terminal answer coinciding with one of those
-                    # nodes is not necessarily a restatement - it can
-                    # be a genuine multi-hop answer that happens to
-                    # pass through or land on one of them (day 11:
-                    # "squire" is BOTH the matched pair's `other` AND
-                    # the correct 2-hop answer to "who protects the
-                    # friend of the knight" - excluding by identity
-                    # alone silently dropped the real answer).
-                    if len(c["path"]) == 2 and answer in (expand_from, other):
-                        continue
-                    chains.append({**c, "answer": answer})
+                chains = select_chains(raw_chains, query_target_relation, expand_from, other, resolution_map)
 
         enriched.append(EnrichedHit(
             query_match_text=doc,
@@ -155,6 +117,24 @@ def hybrid_search(
         ))
 
     return enriched
+
+def select_chains(raw_chains, query_target_relation, expand_from, other, resolution_map):
+    """Filter and resolve raw traversal chains into answer-bearing chains.
+    Extracted from hybrid_search's inline loop (day 13) so tests call the
+    real logic instead of hand-copying it."""
+    chains = []
+    for c in raw_chains:
+        if not (c["relations"] and c["relations"][-1] == query_target_relation):
+            continue
+        if _is_redundant_continuation(c, raw_chains, query_target_relation):
+            continue
+        answer = resolve_canonical(_terminal_answer(c), resolution_map)
+        if is_pronoun_generic(answer):
+            continue
+        if len(c["path"]) == 2 and answer in (expand_from, other):
+            continue
+        chains.append({**c, "answer": answer})
+    return chains
 
 def _is_redundant_continuation(chain: dict, all_chains: list[dict], target_relation: str) -> bool:
     """True if some OTHER, shorter chain's full path is a strict

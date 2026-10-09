@@ -6,6 +6,5 @@ __pycache__/
 .pytest_cache/
 data/
 model_cache/
-update.py
 *.csv
 output/

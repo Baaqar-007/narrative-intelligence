@@ -25,6 +25,10 @@ from embedding.embed_relations import load_embedding_model
 from embedding.vector_store import get_collection
 from graph.corpus import load_corpus
 from graph.relation_ontology import SYMMETRIC_RELATIONS
+from scripts.diagnostics.common import output_path
+from resolution.corpus_resolution import build_corpus_resolution_maps
+from resolution.pronoun_filter import resolve_canonical
+
 
 DATA_DIR = Path("data")
 BOOKS = {"40882": "Felix Holt", "106": "Tarzan", "12753": "King Arthur",
@@ -153,14 +157,16 @@ def generate(graph, book_id, rng, hops, cap, enforce_purity=True):
     return out
 
 
-def make_hybrid_adapter(collection, model, corpus):
-    """End-to-end adapter over the live hybrid_search (includes vector recall)."""
+def make_hybrid_adapter(collection, model, corpus, resolution_maps=None):
+    """End-to-end adapter over the live hybrid_search (includes vector recall).
+    resolution_maps=None reproduces pre-resolution behavior exactly."""
     from retrieval.direction_detection import estimate_hop_depth
     from retrieval.hybrid_search import hybrid_search
 
     def run(question, book_id, anchor, first_rel, first_nodes):
         hits = hybrid_search(collection, question, model, corpus, n_results=5,
-                            book_id=book_id, hop_depth=estimate_hop_depth(question))
+                             book_id=book_id, hop_depth=estimate_hop_depth(question),
+                             resolution_maps=resolution_maps)
         answers = {c.get("answer", c["end"]) for h in hits for c in h.chains}
         retrieved = {e for h in hits for e in (h.entity1, h.entity2)}
         first_ok = False
@@ -174,6 +180,17 @@ def make_hybrid_adapter(collection, model, corpus):
         return {"answers": answers, "anchor_retrieved": anchor in retrieved,
                 "first_step_retrieved": first_ok}
     return run
+
+
+def canon_outcome(gold, answers, resolution_map):
+    """Outcome with BOTH gold and answers mapped through resolve_canonical.
+    Without this, a correct canonical-redirected answer scores WRONG
+    against raw-name gold - a measurement artifact, not a system error."""
+    g = {resolve_canonical(x, resolution_map) for x in gold}
+    a = {resolve_canonical(x, resolution_map) for x in answers}
+    return "DECLINED" if not a else "HIT" if g & a else "WRONG"
+
+
 
 
 def score(gold, result):
@@ -203,32 +220,48 @@ def summarize(rows, key_fn, label):
 
 def main():
     corpus = load_corpus(DATA_DIR / "graphs" / "corpus.pkl")
-    adapter = make_hybrid_adapter(get_collection(path=str(DATA_DIR / "chroma")),
-                                  load_embedding_model(), corpus)
-    rng, rows = random.Random(SEED), []
+    collection = get_collection(path=str(DATA_DIR / "chroma"))
+    model = load_embedding_model()
+    # Built on the fly (~10-15s): no risk of a stale pickle contaminating the A/B.
+    resolution_maps = build_corpus_resolution_maps(corpus)
+
+    arms = {
+        "nomaps": make_hybrid_adapter(collection, model, corpus),
+        "maps": make_hybrid_adapter(collection, model, corpus, resolution_maps=resolution_maps),
+    }
+    rng = random.Random(SEED)
+    rows = {name: [] for name in arms}
     for book_id, label in BOOKS.items():
         graph = corpus.get(book_id)
         if graph is None:
             continue
+        rmap = resolution_maps.get(book_id, {})
         for q in generate(graph, book_id, rng, HOPS, CAP_PER_COMBO):
-            rows.append({**q, "book": label, **score(q["gold_set"], adapter(q["question"], book_id, q["anchor"], q["first_rel"], q["first_nodes"]))})
-        print(f"{label}: {sum(r['book_id'] == book_id for r in rows)} questions")
+            args = (q["question"], book_id, q["anchor"], q["first_rel"], q["first_nodes"])
+            for name, adapter in arms.items():
+                result = adapter(*args)
+                row = {**q, "book": label, **score(q["gold_set"], result)}
+                row["outcome_canon"] = (canon_outcome(q["gold_set"], result["answers"], rmap)
+                                        if name == "maps" else row["outcome"])
+                rows[name].append(row)
+        print(f"{label}: {sum(r['book_id'] == book_id for r in rows['nomaps'])} questions")
 
     fields = ["book", "book_id", "question", "anchor", "sequence", "hops", "gold", "gold_size",
               "unique", "gold_nameable_frac", "gold_max_degree", "anchor_degree",
-              "first_step_symmetric", "gendered", "outcome", "attribution", "n_answers",
-              "precision", "anchor_retrieved", "first_step_retrieved", "answers"]
-    with open("yardstick_results.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
-        w.writeheader()
-        w.writerows(rows)
+              "first_step_symmetric", "gendered", "outcome", "outcome_canon", "attribution",
+              "n_answers", "precision", "anchor_retrieved", "first_step_retrieved", "answers"]
+    for name, fname in (("maps", "yardstick_ab_maps.csv"),):
+        with open(output_path(fname), "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(rows[name])
 
-    summarize(rows, lambda r: "all", "overall")
-    summarize(rows, lambda r: r["book"], "book")
-    summarize(rows, lambda r: r["first_step_symmetric"], "first step symmetric")
-    summarize(rows, lambda r: r["unique"], "unique gold answer")
-    summarize(rows, lambda r: r["gendered"], "gendered noun")
-    summarize(rows, lambda r: r["attribution"] or "HIT", "miss attribution")
+    for name in arms:
+        print(f"\n==================== arm: {name} ====================")
+        summarize(rows[name], lambda r: "all", "overall")
+        summarize(rows[name], lambda r: r["book"], "book")
+    c, n = Counter(r["outcome_canon"] for r in rows["maps"]), len(rows["maps"])
+    print("\nmaps arm, canonicalized scoring:", {k: round(v / n, 3) for k, v in c.items()})
 
 
 if __name__ == "__main__":

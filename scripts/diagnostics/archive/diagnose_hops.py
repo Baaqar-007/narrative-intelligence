@@ -28,7 +28,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from graph.corpus import load_corpus
-from ..diagnostics.generate_positive_controls import (
+from common import (
     build_index, STEP_KEYS, step, is_nameable,
 )
 

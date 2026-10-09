@@ -67,8 +67,7 @@ def generate_with_nameable(graph, book_id, hops, cap, nameable_fn, enforce_purit
     anchors = sorted(n for n in graph.nodes if nameable_fn(n))
     combo_counts, out, excluded = Counter(), [], [0]
     for anchor in anchors:
-        for seq, gold in walk(index, anchor, [], {anchor}, hops, STEP_KEYS, STEPS,
-                       enforce_purity, excluded):            
+        for seq, gold in walk(index, anchor, [], {anchor}, hops, enforce_purity, excluded):          
             label = " > ".join(f"{r}:{w}" for r, w in seq)
             if cap is not None and combo_counts[label] >= cap:
                 continue
