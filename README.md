@@ -189,12 +189,12 @@ truth.
 
 ## License and use
 
-NIE is an original research project: the code, documentation and experimental
-findings in this repository are the author's own work. **No open-source license
-has been selected yet**, so by default all rights are reserved. If you would like
-to reuse or build on any part of it, please contact the author first
-(*author name and contact: to be added*). Citing the project by name and linking
-to the repository is appreciated.
+NIE is released under the MIT License — see `LICENSE`. The code, documentation, and experimental findings in this repository are the author's own work and may be reused, modified, and distributed with attribution.
 
-Third-party material keeps its own terms: the ARF dataset (see its dataset card
-and the paper cited above) and the Project Gutenberg texts it is derived from.
+Third-party material keeps its own terms:
+
+**ARF dataset** (`Despina/project_gutenberg, config synthetic_relations_in_fiction_books`) — licensed under MIT. See the dataset card and Christou and Tsoumakas, Artificial Relationships in Fiction: A Dataset for Advancing NLP in Literary Domains (LaTeCH-CLfL 2025).
+
+**Project Gutenberg texts** — public domain.
+
+Citing the project by name and linking to the repository is appreciated.

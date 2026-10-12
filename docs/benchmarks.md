@@ -128,8 +128,8 @@ chaining requirements grow. The traversal column is a self-consistency check
 
 ### Latest run
 
-* Date: [Insert Date]
-* Results folder: [Insert folder path]
+* Date: 12/10/12
+* Results folder: [Results](../results/20261012_093040/benchmark_results.json)
 
 | k | Benchmark 5 | Latest run |
 |---|---|---|
